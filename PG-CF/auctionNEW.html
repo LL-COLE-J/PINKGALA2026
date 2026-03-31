@@ -191,12 +191,16 @@ function renderItems(items) {
 
       const id = item.item_id || item.ItemID;
       const name = item.name || item.ItemName;
-      const currentBid = parseFloat(item.current_bid) || 0;
+     const startingBid = parseFloat(item.starting_bid || item.StartingBid) || 0;
+const currentBidRaw = parseFloat(item.current_bid);
+
+const effectiveBid = (!isNaN(currentBidRaw) && currentBidRaw > 0)
+  ? currentBidRaw
+  : startingBid;
       const winner = item.current_winner || "-";
       const image = item.image || "";
 
-      const nextBid = currentBid + 50;
-
+const nextBid = effectiveBid + 50;
       const isWinning = String(item.current_winner) === String(currentBidder);
 
       const card = document.createElement("div");
@@ -224,7 +228,7 @@ function renderItems(items) {
         </div>
 
         <div style="margin-bottom:10px;">
-          Current: <strong>$${currentBid}</strong><br>
+          Current: <strong>$${effectiveBid}</strong>
           Leader: ${winner}<br>
           <div style="font-size:12px; opacity:0.8;">
             Min Next Bid: $${nextBid}
