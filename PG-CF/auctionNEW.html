@@ -200,7 +200,8 @@ const effectiveBid = (!isNaN(currentBidRaw) && currentBidRaw > 0)
       const winner = item.current_winner || "-";
       const image = item.image || "";
 
-const nextBid = effectiveBid + 50;
+const increment = parseFloat(item.bid_increment) || 50;
+const nextBid = effectiveBid + increment;
       const isWinning = String(item.current_winner) === String(currentBidder);
 
       const card = document.createElement("div");
@@ -231,7 +232,7 @@ const nextBid = effectiveBid + 50;
           Current: <strong>$${effectiveBid}</strong>
           Leader: ${winner}<br>
           <div style="font-size:12px; opacity:0.8;">
-            Min Next Bid: $${nextBid}
+            Min Next Bid: $${nextBid} (+$${increment})
           </div>
         </div>
 
