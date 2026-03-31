@@ -250,7 +250,7 @@ const nextBid = effectiveBid + increment;
 
       card.innerHTML = `
         ${isWinning ? `
-          <div style="font-weight:bold; color:#155724;font-size:16px; margin-bottom:8px;">
+          <div style="font-weight:bold; color:#155724; font-size:22px; margin-bottom:12px;">
             🏆 YOU ARE WINNING
           </div>
         ` : ""}
@@ -282,7 +282,7 @@ const nextBid = effectiveBid + increment;
 </div>
         <button 
   onclick="placeQuickBid('${id}', ${nextBid}, this)"
-  style="background:#28a745; font-size:28px; padding:26px;"
+  style="background:#28a745; font-size:28px; padding:26px; margin-top:16px;"
 >
           Bid $${nextBid}
         </button>
