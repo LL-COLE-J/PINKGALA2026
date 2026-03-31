@@ -54,8 +54,8 @@ button {
   color: white;
   border: none;
   border-radius: 12px;
-  padding: 18px;
-  font-size: 20px;
+  padding: 24px;
+  font-size: 26px;
   font-weight: bold;
   cursor: pointer;
   width: 100%;
@@ -63,8 +63,8 @@ button {
 }
 
 input {
-  padding: 16px;
-  font-size: 18px;
+  padding: 22px;
+  font-size: 24px;
   border-radius: 10px;
   border: 1px solid #ccc;
   width: 100%;
@@ -261,16 +261,16 @@ const nextBid = effectiveBid + increment;
             style="width:100%; height:150px; object-fit:cover; border-radius:10px; margin-bottom:10px;">
         ` : ""}
 
-        <div style="font-size:18px; font-weight:bold; margin-bottom:8px;">
+        <div style="font-size:26px; font-weight:bold; margin-bottom:12px;">
           ${name}
         </div>
 
         <div style="margin-bottom:10px;">
-          <div style="font-size:30px; font-weight:bold; margin-bottom:10px;">
+          <div style="font-size:40px; font-weight:bold; margin-bottom:14px;">
   💰 $${effectiveBid}
 </div>
           Leader: ${winner}<br>
-          <div style="font-size:12px; opacity:0.8;">
+          <div style="font-size:18px; opacity:0.9;"
             Min Next Bid: $${nextBid} (+$${increment})
           </div>
         </div>
