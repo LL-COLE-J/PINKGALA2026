@@ -119,6 +119,8 @@ input {
 
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwjcBzFLO9XFpkWhbTLaRdG4DqpAbrvmnEPc9EwwG6eTwfG73UTQGZD2-U10aeUCV-6/exec";
 
+  let interactionTimeout;
+
 console.log("AUCTION VERSION 2");
 
 let currentItems = [];
@@ -238,8 +240,9 @@ function renderItems(items) {
             id="input-${id}" 
             type="number" 
             placeholder="Custom bid"
-            onfocus="isInteracting = true"
-            onblur="isInteracting = false"
+            onfocus="startInteraction()"
+onblur="endInteraction()"
+oninput="startInteraction()"
           >
           <button onclick="placeCustomBid('${id}', this)">Submit</button>
         </div>
@@ -316,6 +319,28 @@ if (result.success === true) {
 
   btn.disabled = false;
   fetchItems();
+}
+
+  function startInteraction() {
+  isInteracting = true;
+
+  if (interactionTimeout) {
+    clearTimeout(interactionTimeout);
+  }
+
+  interactionTimeout = setTimeout(() => {
+    isInteracting = false;
+  }, 10000);
+}
+
+function endInteraction() {
+  if (interactionTimeout) {
+    clearTimeout(interactionTimeout);
+  }
+
+  interactionTimeout = setTimeout(() => {
+    isInteracting = false;
+  }, 10000);
 }
 
 
