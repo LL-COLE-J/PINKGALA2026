@@ -269,13 +269,16 @@ const nextBid = effectiveBid + increment;
           <div style="font-size:40px; font-weight:bold; margin-bottom:14px;">
   💰 $${effectiveBid}
 </div>
-          Leader: ${winner}<br>
-          <div style="font-size:18px; opacity:0.9;"
+          <div style="font-size:20px; margin-top:6px;">
+          <div style="font-size:18px; opacity:0.9;">
             Min Next Bid: $${nextBid} (+$${increment})
           </div>
         </div>
 
-        <button onclick="placeQuickBid('${id}', ${nextBid}, this)">
+        <button 
+  onclick="placeQuickBid('${id}', ${nextBid}, this)"
+  style="background:#28a745; font-size:28px;"
+>
           Bid $${nextBid}
         </button>
 
