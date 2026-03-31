@@ -288,27 +288,25 @@ console.log("FULL PAYLOAD:", {
   bidder_id: currentBidder
 });
 
-   await fetch(SCRIPT_URL, {
+   const res = await fetch(SCRIPT_URL, {
   method: "POST",
   body: new URLSearchParams({
     bid: true,
     item_id: id,
     bidder_id: currentBidder,
-    bidder_name: currentGuest,   // ✅ ADD THIS
+    bidder_name: currentGuest,
     amount: val
   })
 });
 
-    // assume success
-    statusEl.innerHTML = "<span style='color:lightgreen;'>🏆 You are winning!</span>";
+const result = await res.json();
 
-    if (item) {
-      item.current_bid = val;
-      item.current_winner = currentBidder;
-    }
-
-    renderItems(currentItems);
-
+if (result.success === true) {
+  statusEl.innerHTML = "<span style='color:lightgreen;'>Bid placed</span>";
+} else {
+  statusEl.innerHTML = `<span style='color:red;'>${result.message || "Outbid"}</span>`;
+}
+    
     inputEl.value = "";
 
   } catch (err) {
@@ -354,37 +352,30 @@ async function placeQuickBid(id, amt, btn){
   if (btn.disabled) return;
 
   const statusEl = document.getElementById(`status-${id}`);
-
   btn.disabled = true;
 
-  // 🔵 STEP 1: show submitting
   statusEl.innerText = "Submitting...";
-
-  // ⚡ STEP 2: instant UI update
-  const item = currentItems.find(i => i.item_id == id);
-  if (item) {
-    item.current_bid = amt;
-    item.current_winner = currentBidder;
-  }
-
-  renderItems(currentItems);
 
   try {
 
-    // 🧠 THIS = "fetch succeeds" point
-    await fetch(SCRIPT_URL, {
+    const res = await fetch(SCRIPT_URL, {
       method: "POST",
       body: new URLSearchParams({
         bid: true,
         item_id: id,
         bidder_id: currentBidder,
-        bidder_name: currentGuest,  
-        amount: amt
+        bidder_name: currentGuest,
+        amount: amt // ✅ FIXED
       })
     });
 
-    // 🟢 STEP 3: success AFTER server confirms
-    statusEl.innerHTML = "<span style='color:lightgreen;'>🏆 You are winning!</span>";
+    const result = await res.json();
+
+    if (result.success === true) {
+     statusEl.innerHTML = "<span style='color:lightgreen;'>Bid placed</span>";
+    } else {
+      statusEl.innerHTML = `<span style='color:red;'>${result.message || "Outbid"}</span>`;
+    }
 
   } catch (err) {
     statusEl.innerText = "⚠️ Error";
@@ -392,6 +383,7 @@ async function placeQuickBid(id, amt, btn){
   }
 
   btn.disabled = false;
+
   fetchItems();
 }
   
