@@ -36,9 +36,9 @@ h1 {
 }
 
 .bid-item {
-  border-radius: 12px;
-  padding: 20px;
-  margin-bottom: 15px;
+  border-radius: 18px;
+  padding: 36px 20px;
+  margin-bottom: 24px;
   background: linear-gradient(135deg, #d63384, #ff6fa3);
   color: white;
 }
@@ -53,15 +53,21 @@ button {
   background: #d63384;
   color: white;
   border: none;
-  border-radius: 8px;
-  padding: 8px 12px;
+  border-radius: 12px;
+  padding: 18px;
+  font-size: 20px;
+  font-weight: bold;
   cursor: pointer;
+  width: 100%;
+  margin-top: 10px;
 }
 
 input {
-  padding: 6px;
-  border-radius: 6px;
+  padding: 16px;
+  font-size: 18px;
+  border-radius: 10px;
   border: 1px solid #ccc;
+  width: 100%;
 }
 
 .winning div:first-child {
@@ -260,7 +266,9 @@ const nextBid = effectiveBid + increment;
         </div>
 
         <div style="margin-bottom:10px;">
-          Current: <strong>$${effectiveBid}</strong>
+          <div style="font-size:30px; font-weight:bold; margin-bottom:10px;">
+  💰 $${effectiveBid}
+</div>
           Leader: ${winner}<br>
           <div style="font-size:12px; opacity:0.8;">
             Min Next Bid: $${nextBid} (+$${increment})
@@ -271,7 +279,7 @@ const nextBid = effectiveBid + increment;
           Bid $${nextBid}
         </button>
 
-        <div style="margin-top:10px;">
+        <div style="margin-top:16px; display:flex; flex-direction:column; gap:12px;">
           <input 
             id="input-${id}" 
             type="number" 
