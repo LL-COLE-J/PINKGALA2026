@@ -236,7 +236,8 @@ function handleCheckIn(id) {
   
   if (checkedInSet.has(id)) return;
 
-  checkedInSet.add(id);
+checkedInSet.add(id);
+
 
   queueCheckIn({ id });   // ✅ calls the REAL queue
 
