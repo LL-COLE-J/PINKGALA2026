@@ -15,8 +15,7 @@
 .bid-item {
   width: 100%;
   text-align: center;
-max-width: 600px;
-margin: 0 auto;
+  margin: 0;
 }
 
 .submenu {
@@ -27,9 +26,8 @@ margin: 0 auto;
 body {
   font-family: Arial, sans-serif;
   background: linear-gradient(to bottom right, #ffe6f0, #fff);
-  max-width: 600px;
-  margin: 0 auto;
-  padding: 20px;
+  margin: 0;
+  padding: 10px;
 }
 
 h1 {
@@ -107,6 +105,24 @@ input {
   input {
     font-size: 18px;
     padding: 14px;
+  }
+
+}
+
+  @media (max-width: 430px) {
+
+  body {
+    padding: 8px;
+  }
+
+  #auctionItems {
+    gap: 12px;
+  }
+
+  .bid-item {
+    width: 100%;
+    padding: 18px;
+    border-radius: 16px;
   }
 
 }
