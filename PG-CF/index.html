@@ -97,8 +97,8 @@ button{
 <div id="guestList"></div>
 
 
-<div id="loading" style="display:none;">Loading guest list...</div>
-<div id="status"></div>
+<div id="loading">Loading guest list...</div>
+<div id="status" style="display:none;"></div>
 
 
 </div>
@@ -151,11 +151,15 @@ function loadGuests() {
 
   renderList([]);
 
-  document.getElementById("status").innerText = "Enter Name";
- document.getElementById("loading").style.display = "none";
-}    
+  // Hide loading
+document.getElementById("loading").style.display = "none";
 
+// Show status
+const statusEl = document.getElementById("status");
+statusEl.style.display = "block";
+statusEl.innerText = "Enter Name";
 
+}
 /* =========================
    RENDER
 ========================= */
