@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+
+<title>2026 Pink Gala Auction</title>
+
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: linear-gradient(to bottom right, #ffe6f0, #fff);
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+h1 {
+  color: #d63384;
+  text-align: center;
+}
+
+#auctionItems {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.bid-item {
+  max-width: 600px;
+  margin: 0 auto;
+  text-align: center;
+  border-radius: 12px;
+  padding: 20px;
+  background: linear-gradient(135deg, #d63384, #ff6fa3);
+  color: white;
+}
+
+.bid-item.winning {
+  background: #e8f7ee;
+  color: black;
+  border: 2px solid #28a745;
+}
+
+button {
+  background: #d63384;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+input {
+  padding: 6px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+</style>
+</head>
+
+<body>
+
+<h1>2026 Pink Gala Auction</h1>
+
+<div style="text-align:center; margin-bottom:15px;">
+  <button onclick="goHome()">🏠 Home</button>
+</div>
+
+<button onclick="toggleMyBids()">🎯 My Bids</button>
+
+<div style="text-align:center; margin-bottom:20px;">
+  <strong id="userInfo"></strong>
+</div>
+
+<div id="auctionItems"></div>
+
+<script>
+
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwjcBzFLO9XFpkWhbTLaRdG4DqpAbrvmnEPc9EwwG6eTwfG73UTQGZD2-U10aeUCV-6/exec";
+
+let showMyBidsOnly = false;
+let currentItems = [];
+let previousWinners = {};
+let outbidItems = new Set();
+
+// ===== USER =====
+const params = new URLSearchParams(window.location.search);
+
+const user = {
+  name: decodeURIComponent(params.get("name") || ""),
+  bidderId: params.get("bidder"),
+  table: params.get("table")
+};
+
+let currentGuest = user.name;
+
+// ===== RENDER =====
+function renderItems(items) {
+
+  const div = document.getElementById("auctionItems");
+  div.innerHTML = "";
+
+  let filteredItems = items
+    .filter(i => i && i.name)
+    .filter(i => (i.status || "").toLowerCase() !== "closed");
+
+  if (showMyBidsOnly) {
+    filteredItems = filteredItems.filter(i =>
+      String(i.current_winner) === String(user.bidderId)
+    );
+  }
+
+  filteredItems.forEach(item => {
+
+    const id = item.item_id;
+    const name = item.name;
+
+    const currentBid = item.current_bid
+      ? Number(item.current_bid)
+      : Number(item.starting_bid) || 0;
+
+    const winner = item.current_winner;
+
+    const previousWinner = previousWinners[id];
+
+    // OUTBID DETECTION
+    // OUTBID DETECTION (FINAL FIX)
+if (
+  previousWinner !== undefined &&
+  String(previousWinner) === String(user.bidderId) &&
+  String(winner) !== String(user.bidderId) &&
+  winner !== null &&
+  winner !== ""
+) {
+  if (!outbidItems.has(id)) {
+    alert(`⚠️ You’ve been outbid on ${name}`);
+    outbidItems.add(id);
+  }
+}
+
+    const isWinning = String(winner) === String(user.bidderId);
+
+    if (isWinning) {
+      outbidItems.delete(id);
+    }
+
+    const card = document.createElement("div");
+    card.className = "bid-item";
+    if (isWinning) card.classList.add("winning");
+
+    card.innerHTML = `
+      ${isWinning ? `<div>🏆 YOU ARE WINNING</div>` : ""}
+      ${outbidItems.has(id) ? `<div style="color:red;">⚠️ OUTBID</div>` : ""}
+
+      <div style="font-weight:bold; margin:10px 0;">${name}</div>
+
+      <div>
+        ${item.current_bid ? `Current: $${currentBid}` : `Starting Bid: $${currentBid}`}<br>
+        Leader: ${winner ? `#${winner}` : "—"}
+      </div>
+
+      <div style="margin-top:10px;">
+        <button onclick="placeQuickBid('${id}', ${currentBid + 50}, this)">
+          Bid $${currentBid + 50}
+        </button>
+      </div>
+
+      <div style="margin-top:10px;">
+        <input id="input-${id}" type="number" placeholder="Min $${currentBid + 50}">
+        <button onclick="placeCustomBid('${id}', this)">Place Bid</button>
+      </div>
+
+      <div id="status-${id}" style="margin-top:8px;"></div>
+    `;
+
+    previousWinners[id] = winner;
+    div.appendChild(card);
+  });
+}
+
+// ===== FETCH =====
+async function fetchItems(){
+  const res = await fetch(`${SCRIPT_URL}?items=true`);
+  const data = await res.json();
+  currentItems = data;
+  renderItems(currentItems);
+}
+
+// ===== QUICK BID =====
+async function placeQuickBid(id, amt, btn){
+
+  if (btn.disabled) return;
+  btn.disabled = true;
+
+  const status = document.getElementById(`status-${id}`);
+  status.innerText = "Submitting...";
+
+  const item = currentItems.find(i => i.item_id == id);
+  if (item) {
+    item.current_bid = amt;
+    item.current_winner = user.bidderId;
+  }
+
+  renderItems(currentItems);
+
+  try {
+    await fetch(SCRIPT_URL, {
+      method: "POST",
+      body: new URLSearchParams({
+        bid: true,
+        item_id: id,
+        bidder_id: user.bidderId,
+        bidder_name: currentGuest,
+        amount: amt
+      })
+    });
+
+    status.innerHTML = "🏆 Winning";
+
+  } catch {
+    status.innerText = "Error";
+  }
+
+  btn.disabled = false;
+  fetchItems();
+}
+
+// ===== CUSTOM BID =====
+async function placeCustomBid(id, btn){
+
+  if (btn.disabled) return;
+  btn.disabled = true;
+
+  const input = document.getElementById(`input-${id}`);
+  const val = Number(input.value);
+
+  const item = currentItems.find(i => i.item_id == id);
+  const current = item.current_bid
+    ? Number(item.current_bid)
+    : Number(item.starting_bid);
+
+  if (val <= current) {
+    btn.disabled = false;
+    return alert(`Bid must be greater than $${current}`);
+  }
+
+  await placeQuickBid(id, val, btn);
+  input.value = "";
+}
+
+// ===== UI =====
+function toggleMyBids(){
+  showMyBidsOnly = !showMyBidsOnly;
+  renderItems(currentItems);
+}
+
+function goHome(){
+  const url = new URL(window.location.href);
+  url.pathname = url.pathname.replace(/\/[^\/]*$/, "/index.html");
+  window.location.href = url.href;
+}
+
+// ===== INIT =====
+window.onload = () => {
+
+  document.getElementById("userInfo").innerText =
+    `${user.name} | Bidder #${user.bidderId} | Table ${user.table}`;
+
+  fetchItems();
+
+  setInterval(fetchItems, 3000);
+};
+
+</script>
+
+</body>
+</html>
