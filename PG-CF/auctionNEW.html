@@ -510,9 +510,27 @@ async function placeQuickBid(id, amt, btn){
         item_id: id,
         bidder_id: currentBidder,
         bidder_name: currentGuest,
-        amount: amt // ✅ FIXED
+        amount: amt
       })
     });
+
+    const result = await res.json();
+
+    if (result.success === true) {
+      statusEl.innerHTML = "<span style='color:lightgreen;'>Bid placed</span>";
+    } else {
+      statusEl.innerHTML = `<span style='color:red;'>${result.message || "Outbid"}</span>`;
+    }
+
+  } catch (err) {
+    statusEl.innerText = "⚠️ Error";
+    console.error(err);
+  }
+
+  btn.disabled = false;
+
+  fetchItems();
+}
 
     
 }
