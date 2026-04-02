@@ -581,6 +581,10 @@ async function placeQuickBid(id, amt, btn){
   if (e.key === "Enter") {
     e.preventDefault();
 
+    // 🔥 CLOSE KEYBOARD
+    inputEl.blur();
+    document.activeElement.blur();
+    
     // find the submit button in the same card
     const card = inputEl.closest(".custom-bid-box");
     const btn = card.querySelector("button");
