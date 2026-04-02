@@ -104,6 +104,14 @@ input {
   transform: scale(1.03);
 }
 
+         .item-title {
+  font-size: 32px;
+  font-weight: 800;
+  margin: 14px 0 18px 0;
+  line-height: 1.2;
+}
+
+
   @media (max-width: 430px) {
 
   body {
@@ -135,12 +143,6 @@ input {
     width: 100%;
   }
 
-       .item-title {
-  font-size: 32px;
-  font-weight: 800;
-  margin: 14px 0 18px 0;
-  line-height: 1.2;
-}
 
 }
 
@@ -287,7 +289,7 @@ const nextBid = effectiveBid + increment;
         ${image ? `
           <img src="${image}" 
             onerror="this.style.display='none';"
-            style="width:100%; height:200px; object-fit:cover; border-radius:10px; margin-bottom:10px;">
+            style="width:100%; height:220px; object-fit:cover; border-radius:10px; margin-bottom:10px;">
         ` : ""}
 
         <div class="item-title">
