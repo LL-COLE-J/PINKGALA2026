@@ -63,6 +63,18 @@ h1 {
   text-align: center;
 }
 
+  .top-actions {
+  max-width: 420px;
+  margin: 0 auto 20px auto;
+  padding: 0 10px; /* 🔥 pulls in from edges */
+  text-align: center;
+}
+
+  .top-actions button {
+  width: 100%;
+  border-radius: 14px;
+}
+
   .custom-bid-box {
   margin-top: 10px;
   margin-bottom: 14px;
@@ -78,6 +90,14 @@ h1 {
   color: black;
   border: 3px solid #28a745;
   box-shadow: 0 0 0 4px rgba(40,167,69,0.15);
+}
+
+  .app-body {
+  max-width: 420px;
+  margin: 0 auto;
+  transform: scale(1.05);        /* 🔥 zoom effect */
+  transform-origin: top center;
+  padding-bottom: 40px;
 }
 
 button {
@@ -183,9 +203,10 @@ color: #333;
 <body>
 
 <h1>2026 Pink Gala Auction</h1>
+  <div class="app-body">
 
 
-  <div style="width:100%; margin:0 0 20px 0; text-align:center;">
+<div class="top-actions">
 
   <button onclick="goHome()" style="display:block; margin:0 auto 10px auto;">
     🏠 Home
@@ -596,5 +617,6 @@ async function placeQuickBid(id, amt, btn){
 }
 
 </script>
+</div>
 </body>
 </html>
