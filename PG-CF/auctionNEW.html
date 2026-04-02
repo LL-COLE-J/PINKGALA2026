@@ -43,7 +43,6 @@
    max-width: 460px;
   text-align: center;
   margin: 0 auto;
-  height:92vh;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -53,6 +52,12 @@
   background: linear-gradient(135deg, #d63384, #ff6fa3);
   color: white;
   font-size: 20px;
+  overflow: hidden;
+}
+
+  .card-inner {
+  transform: scale(1.15);
+  transform-origin: top center;
 }
 
  
@@ -347,6 +352,24 @@ const nextBid = effectiveBid + increment;
       }
 
       card.innerHTML = `
+       <div class="card-inner">
+
+    ${isWinning ? `...` : ""}
+
+    ${image ? `...` : ""}
+
+    <div class="item-title">${name}</div>
+
+    <div class="bid-box">...</div>
+
+    <button ...>Bid $${nextBid}</button>
+
+    <div class="custom-bid-box">...</div>
+
+    <div id="status-${id}"></div>
+
+  </div>
+`;
         ${isWinning ? `
           <div style="font-weight:bold; color:#155724; font-size:22px; margin-bottom:12px;">
             🏆 YOU ARE WINNING
