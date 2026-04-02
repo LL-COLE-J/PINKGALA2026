@@ -17,7 +17,7 @@
 }
   .bid-box {
   background: rgba(255,255,255,0.25);
-  padding: 20px;
+  padding: 14px;
   border-radius: 14px;
   margin: 16px 0;
 }
@@ -40,7 +40,6 @@
 
 .bid-item {
   width: 100%;
-   max-width: 460px;
   text-align: center;
   margin: 0 auto;
   display: flex;
@@ -76,7 +75,7 @@ body {
   font-family: Arial, sans-serif;
   background: linear-gradient(to bottom right, #ffe6f0, #fff);
   margin: 0;
-  padding: 6px;
+  padding: 0px;
 }
 
 h1 {
@@ -117,7 +116,7 @@ h1 {
   width: 100%;
   max-width: 100%;
   margin: 0 auto;
-  padding: 0 4px 40px 4px;
+  padding: 0 2px 40px 2px;
 }
 
 button {
@@ -410,7 +409,7 @@ const nextBid = effectiveBid + increment;
       >
       
       <button onclick="placeCustomBid('${id}', this)" 
-        style="font-size:22px; padding:18px;">
+        style="font-size:28px; padding:18px;">
         Submit Bid
       </button>
 
@@ -527,7 +526,7 @@ function endInteraction() {
 
     if (!contentHeight) return;
 
-    const scale = Math.min(cardHeight / contentHeight, 1.25);
+    const scale = Math.min(cardHeight / contentHeight, 1.5);
 
     inner.style.transform = `scale(${scale})`;
     inner.style.transformOrigin = "top center";
