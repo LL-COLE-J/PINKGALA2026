@@ -64,10 +64,11 @@ h1 {
 }
 
   .custom-bid-box {
-  margin-top: 18px;
-  padding: 12px;
-  border-radius: 16px;
-  background: rgba(255,255,255,0.15);
+  margin-top: 20px;
+  margin-bottom: 14px;
+  padding: 18px;
+  border-radius: 18px;
+  background: rgba(255,255,255,0.18);
 }
 
 
@@ -100,8 +101,8 @@ background: rgba(255,255,255,0.9);
 color: #333;
   width: 100%;
   text-align: center;
-  font-weight 700;
-  min-height: 80px;
+  font-weight: 700;
+  min-height: 90px;
 }
 
 .winning div:first-child {
@@ -341,7 +342,10 @@ const nextBid = effectiveBid + increment;
             
 oninput="startInteraction()"
           >
-          <button onclick="placeCustomBid('${id}', this)">Submit</button>
+         <button onclick="placeCustomBid('${id}', this)" 
+  style="font-size:22px; padding:18px;">
+  Submit Bid
+</button>
         </div>
 
         <div id="status-${id}" style="margin-top:8px;"></div>
@@ -351,7 +355,8 @@ oninput="startInteraction()"
     });
 }
 
-
+<div class="custom-bid-box" 
+     onclick="focusBidInput('${id}')">
 
 let currentGuest = user.name;
 console.log("CURRENT GUEST VALUE:", currentGuest);
@@ -466,6 +471,14 @@ async function fetchItems(){
   console.log("FINAL ITEMS:", currentItems);
 
   renderItems(currentItems);
+}
+
+  function focusBidInput(id) {
+  const el = document.getElementById(`input-${id}`);
+  if (el) {
+    el.focus();
+    el.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
 }
 
 // ===== BID =====
