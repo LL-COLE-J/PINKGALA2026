@@ -181,12 +181,6 @@ color: #333;
 
 </div>
 
-  <div id="auctionItems">
-  <div style="text-align:center; font-size:22px; padding:40px;">
-    Loading auction items...
-  </div>
-</div>
-
 
 <div id="auctionPage">
 
@@ -520,54 +514,18 @@ async function placeQuickBid(id, amt, btn){
       })
     });
 
-    const cached = localStorage.getItem("auctionItems");
+    document.addEventListener("DOMContentLoaded", () => {
 
-if (cached) {
-  try {
-    const parsed = JSON.parse(cached);
-    renderItems(parsed); // instant UI
-  } catch (e) {
-    console.error("Cache parse failed", e);
-  }
-}
+  // 1. Load cached items instantly
 
-    const result = await res.json();
-
-    if (result.success === true) {
-     statusEl.innerHTML = "<span style='color:lightgreen;'>Bid placed</span>";
-    } else {
-      statusEl.innerHTML = `<span style='color:red;'>${result.message || "Outbid"}</span>`;
-    }
-
-  } catch (err) {
-    statusEl.innerText = "⚠️ Error";
-    console.error(err);
-  }
-
-  btn.disabled = false;
-
-  fetchItems();
-}
-  
-function goHome(){
-  window.location.href = "/";
-}
-
- const cached = localStorage.getItem("auctionItems");
-  if (cached) {
-    try {
-      renderItems(JSON.parse(cached));
-    } catch {}
-  }
-
-  // 2. THEN fetch fresh data
+  // 2. Fetch fresh data
   fetchItems();
 
-  // 3. THEN UI setup
+  // 3. Show user info
   document.getElementById("userInfo").innerText =
     `${user.name} | Bidder #${user.bidderId} | Table ${user.table}`;
 
-  // 4. Auto refresh stays the same
+  // 4. Auto refresh
   setInterval(() => {
     if (!isInteracting) {
       fetchItems();
