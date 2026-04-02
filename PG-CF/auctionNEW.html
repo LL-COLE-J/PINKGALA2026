@@ -515,6 +515,28 @@ function endInteraction() {
   }, 10000);
 }
 
+  function autoScaleCards() {
+  document.querySelectorAll(".bid-item").forEach(card => {
+    const inner = card.querySelector(".card-inner");
+    if (!inner) return;
+
+    // reset scale first
+    inner.style.transform = "scale(1)";
+
+    const cardHeight = card.clientHeight;
+    const contentHeight = inner.scrollHeight;
+
+    if (!contentHeight) return;
+
+    const scale = Math.min(cardHeight / contentHeight, 1.25);
+
+    inner.style.transform = `scale(${scale})`;
+    inner.style.transformOrigin = "top center";
+
+    // slight visual centering tweak
+    inner.style.marginTop = `${(cardHeight - contentHeight * scale) / 4}px`;
+  });
+}
 
 
 
@@ -551,6 +573,7 @@ async function fetchItems(){
     el.scrollIntoView({ behavior: "smooth", block: "center" });
   }
 }
+  setTimeout(autoScaleCards, 50);
 
 // ===== BID =====
 async function placeQuickBid(id, amt, btn){
