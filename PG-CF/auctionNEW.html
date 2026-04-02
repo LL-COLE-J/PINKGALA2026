@@ -521,8 +521,10 @@ function endInteraction() {
     const prevScale = inner.dataset.scale;
 
     // reset to measure
-    inner.style.transform = "scale(1)";
-    inner.style.marginTop = "0px";
+   if (!prevScale) {
+  inner.style.transform = "scale(1)";
+  inner.style.marginTop = "0px";
+}
 
     const cardHeight = card.clientHeight;
     const contentHeight = inner.scrollHeight;
@@ -546,17 +548,17 @@ function endInteraction() {
   });
 }
 
-
+let lastDataHash = "";
 
 // ===== FETCH ITEMS =====
 async function fetchItems(){
 
   const res = await fetch(`${SCRIPT_URL}?items=true`);
-
-  const text = await res.text(); // 👈 important
+  const text = await res.text();
   console.log("RAW:", text);
-
+ if (text === lastDataHash) return;
   let data;
+  lastDataHash = text;
   try {
     data = JSON.parse(text);
   } catch (e) {
@@ -569,10 +571,12 @@ async function fetchItems(){
   currentItems = data;
   localStorage.setItem("auctionItems", JSON.stringify(currentItems));
   renderItems(currentItems);
+  if (!isInteracting) {
 setTimeout(autoScaleCards, 50);
 
   console.log("FINAL ITEMS:", currentItems);
 
+}
 }
 
   function focusBidInput(id) {
