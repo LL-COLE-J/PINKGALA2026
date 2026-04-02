@@ -11,11 +11,39 @@
   flex-direction: column;
   gap: 20px; /* ~quarter inch spacing */
 }
+  .bid-box {
+  background: rgba(255,255,255,0.25);
+  padding: 20px;
+  border-radius: 14px;
+  margin: 16px 0;
+}
+
+.bid-amount {
+  font-size: 56px;
+  font-weight: 800;
+  margin-bottom: 10px;
+}
+
+.bid-meta {
+  font-size: 22px;
+  margin-bottom: 6px;
+}
+
+.bid-next {
+  font-size: 22px;
+  opacity: 0.9;
+}
 
 .bid-item {
   width: 100%;
   text-align: center;
   margin: 0;
+  border-radius: 20px;
+  padding: 24px 18px;
+  margin-bottom: 24px;
+  background: linear-gradient(135deg, #d63384, #ff6fa3);
+  color: white;
+  font-size: 20px;
 }
 
 .submenu {
@@ -35,19 +63,12 @@ h1 {
   text-align: center;
 }
 
-.bid-item {
-  border-radius: 18px;
-  padding: 36px 20px;
-  margin-bottom: 24px;
-  background: linear-gradient(135deg, #d63384, #ff6fa3);
-  color: white;
-  font-size: 20px;
-}
 
 .bid-item.winning {
   background: #e8f7ee;
   color: black;
-  border: 2px solid #28a745;
+  border: 3px solid #28a745;
+  box-shadow: 0 0 0 4px rgba(40,167,69,0.15);
 }
 
 button {
@@ -113,6 +134,13 @@ input {
   .bid-item button {
     width: 100%;
   }
+
+       .item-title {
+  font-size: 32px;
+  font-weight: 800;
+  margin: 14px 0 18px 0;
+  line-height: 1.2;
+}
 
 }
 
@@ -259,25 +287,27 @@ const nextBid = effectiveBid + increment;
         ${image ? `
           <img src="${image}" 
             onerror="this.style.display='none';"
-            style="width:100%; height:150px; object-fit:cover; border-radius:10px; margin-bottom:10px;">
+            style="width:100%; height:200px; object-fit:cover; border-radius:10px; margin-bottom:10px;">
         ` : ""}
 
-        <div style="font-size:30px; font-weight:bold; margin-bottom:14px;">
+        <div class="item-title">
           ${name}
         </div>
 
-       <div style="margin-bottom:16px;">
+     
 
-  <div style="font-size:52px; font-weight:bold; margin-bottom:12px;">
-    💰 $${effectiveBid}
+       <div class="bid-box">
+
+  <div class="bid-amount">
+    $${effectiveBid}
   </div>
 
-  <div style="font-size:24px; margin-bottom:8px;">
+  <div class="bid-meta">
     Leader: ${winner}
   </div>
 
-  <div style="font-size:22px; opacity:0.95;">
-    Min Next Bid: $${nextBid} (+$${increment})
+  <div class="bid-next">
+    Next Bid: $${nextBid}
   </div>
 
 </div>
