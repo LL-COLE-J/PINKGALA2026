@@ -352,86 +352,74 @@ const nextBid = effectiveBid + increment;
       }
 
       card.innerHTML = `
-       <div class="card-inner">
+  <div class="card-inner">
 
-    ${isWinning ? `...` : ""}
+    ${isWinning ? `
+      <div style="font-weight:bold; color:#155724; font-size:22px; margin-bottom:12px;">
+        🏆 YOU ARE WINNING
+      </div>
+    ` : ""}
 
-    ${image ? `...` : ""}
+    ${image ? `
+      <img src="${image}" 
+        onerror="this.style.display='none';"
+        style="width:100%; height:220px; object-fit:cover; border-radius:10px; margin-bottom:10px;">
+    ` : ""}
 
-    <div class="item-title">${name}</div>
+    <div class="item-title">
+      ${name}
+    </div>
 
-    <div class="bid-box">...</div>
+    <div class="bid-box">
 
-    <button ...>Bid $${nextBid}</button>
+      <div class="bid-amount">
+        $${effectiveBid}
+      </div>
 
-    <div class="custom-bid-box">...</div>
+      <div class="bid-meta">
+        Leader: ${winner}
+      </div>
 
-    <div id="status-${id}"></div>
+      <div class="bid-next">
+        Next Bid: $${nextBid}
+      </div>
+
+    </div>
+
+    <button 
+      onclick="placeQuickBid('${id}', ${nextBid}, this)"
+      style="background:#28a745; font-size:28px; padding:26px; margin-top:16px;"
+    >
+      Bid $${nextBid}
+    </button>
+
+    <div class="custom-bid-box" onclick="focusBidInput('${id}')">
+
+      <div style="font-size:20px; font-weight:700; margin-bottom:8px; color:#d63384;">
+        Enter Custom Bid
+      </div>
+
+      <input 
+        id="input-${id}" 
+        type="text" 
+        inputmode="numeric"
+        placeholder="Custom bid"
+        onfocus="startInteraction()" 
+        oninput="startInteraction()"
+        onkeydown="handleBidEnter(event, '${id}', this)"
+      >
+      
+      <button onclick="placeCustomBid('${id}', this)" 
+        style="font-size:22px; padding:18px;">
+        Submit Bid
+      </button>
+
+    </div>
+
+    <div id="status-${id}" style="margin-top:8px;"></div>
 
   </div>
 `;
-        ${isWinning ? `
-          <div style="font-weight:bold; color:#155724; font-size:22px; margin-bottom:12px;">
-            🏆 YOU ARE WINNING
-          </div>
-        ` : ""}
-
-        ${image ? `
-          <img src="${image}" 
-            onerror="this.style.display='none';"
-            style="width:100%; height:220px; object-fit:cover; border-radius:10px; margin-bottom:10px;">
-        ` : ""}
-
-        <div class="item-title">
-          ${name}
-        </div>
-
-     
-
-       <div class="bid-box">
-
-  <div class="bid-amount">
-    $${effectiveBid}
-  </div>
-
-  <div class="bid-meta">
-    Leader: ${winner}
-  </div>
-
-  <div class="bid-next">
-    Next Bid: $${nextBid}
-  </div>
-
-</div>
-        <button 
-  onclick="placeQuickBid('${id}', ${nextBid}, this)"
-  style="background:#28a745; font-size:28px; padding:26px; margin-top:16px;"
->
-          Bid $${nextBid}
-        </button>
-
-       <div class="custom-bid-box" onclick="focusBidInput('${id}')">
-
-  <div style="font-size:20px; font-weight:700; margin-bottom:8px; color:#d63384;">
-    Enter Custom Bid
-  </div>
-
-  <input 
-  id="input-${id}" 
-  type="text" 
-  inputmode="numeric"
-  placeholder="Custom bid"
-  onfocus="startInteraction()" 
-  oninput="startInteraction()"
-  onkeydown="handleBidEnter(event, '${id}', this)"
->
-  
-  <button onclick="placeCustomBid('${id}', this)" 
-    style="font-size:22px; padding:18px;">
-    Submit Bid
-  </button>
-
-</div>
 
   
         
