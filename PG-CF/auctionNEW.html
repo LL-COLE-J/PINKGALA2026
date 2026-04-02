@@ -23,26 +23,31 @@ h1 {
   color: #ff4da6;
 }
 
-/* TOP BUTTONS */
+/* ===== TOP BUTTONS (FIXED SIZE) ===== */
 .top-actions {
   display: flex;
-  gap: 10px;
+  gap: 12px;
   margin: 12px;
 }
 
 .top-actions button {
   flex: 1;
+  padding: 20px; /* 🔥 bigger */
+  font-size: 22px;
+
   background: linear-gradient(145deg, #3a3f4a, #262a32);
   color: #fff;
+  border-radius: 14px;
+
   border: 1px solid rgba(255,255,255,0.25);
 }
 
 /* CARD */
 .bid-item {
-  margin: 10px;
+  margin: 12px;
   border-radius: 20px;
   background: #1e2128;
-  padding: 16px;
+  padding: 18px;
 }
 
 /* IMAGE */
@@ -67,15 +72,15 @@ h1 {
 
 /* BUTTON BASE */
 button {
-  border-radius: 12px;
+  border-radius: 14px;
   cursor: pointer;
 }
 
-/* 🔥 BIG BID BUTTON (RESTORED) */
+/* BIG BID BUTTON */
 .bid-btn {
   width: 100%;
-  padding: 28px;
-  font-size: 32px;
+  padding: 30px;
+  font-size: 34px;
   font-weight: bold;
 
   background: linear-gradient(135deg, #5efc82, #38d96b);
@@ -84,35 +89,40 @@ button {
   margin-top: 14px;
 }
 
-/* CUSTOM BOX */
+/* ===== CUSTOM BID BOX (FAT FINGER FIX) ===== */
 .custom-bid-box {
-  margin-top: 14px;
-  padding: 16px;
+  margin-top: 16px;
+  padding: 20px; /* 🔥 bigger hit zone */
+
   background: #2a2d36;
-  border-radius: 14px;
+  border-radius: 16px;
 }
 
 /* INPUT */
 input {
   width: 100%;
-  padding: 20px;
-  font-size: 28px;
-  margin-bottom: 10px;
+  padding: 22px; /* 🔥 bigger */
+  font-size: 30px;
+
+  margin-bottom: 14px;
+
   background: #fff;
   color: #000;
-  border-radius: 12px;
+
+  border-radius: 14px;
 }
 
 /* SUBMIT */
 .custom-bid-box button {
   width: 100%;
-  padding: 20px;
-  font-size: 26px;
+  padding: 22px; /* 🔥 bigger */
+  font-size: 28px;
+
   background: #cfd3dc;
   color: #000;
 }
 
-/* 🔥 BID POPUP */
+/* POPUP */
 .bid-popup {
   position: fixed;
   top: 20px;
@@ -120,7 +130,7 @@ input {
   transform: translateX(-50%) scale(0.9);
   background: #38d96b;
   color: #000;
-  padding: 16px 26px;
+  padding: 18px 28px;
   border-radius: 12px;
   font-size: 22px;
   font-weight: bold;
@@ -157,16 +167,13 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwjcBzFLO9XFpkWhbTLa
 let isInteracting = false;
 let interactionTimeout;
 
-/* 🔥 20 SECOND INTERACTION LOCK */
+/* 20s INTERACTION */
 function startInteraction(){
   isInteracting = true;
   clearTimeout(interactionTimeout);
-  interactionTimeout = setTimeout(()=>{
-    isInteracting = false;
-  }, 20000);
+  interactionTimeout = setTimeout(()=> isInteracting=false, 20000);
 }
 
-/* FOCUS FIX (NO FIGHTING INPUT) */
 function focusBidInput(id){
   const el = document.getElementById(`input-${id}`);
   if(el && document.activeElement !== el){
@@ -181,14 +188,11 @@ function handleBidEnter(e, id){
   }
 }
 
-/* 🔥 POPUP */
+/* POPUP */
 function showBidPopup(){
   const popup = document.getElementById("bidPopup");
   popup.classList.add("show");
-
-  setTimeout(()=>{
-    popup.classList.remove("show");
-  }, 1500);
+  setTimeout(()=> popup.classList.remove("show"), 1500);
 }
 
 /* RENDER */
@@ -277,20 +281,12 @@ async function placeCustomBid(id){
 }
 
 /* NAV */
-function goHome(){
-  window.location.href="/";
-}
-
+function goHome(){ window.location.href="/"; }
 function toggleMyBids(){}
 
 /* INIT */
 fetchItems();
-
-setInterval(()=>{
-  if(!isInteracting){
-    fetchItems();
-  }
-},3000);
+setInterval(()=>{ if(!isInteracting) fetchItems(); },3000);
 
 </script>
 
