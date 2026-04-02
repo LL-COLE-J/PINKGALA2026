@@ -333,7 +333,7 @@ const nextBid = effectiveBid + increment;
           Bid $${nextBid}
         </button>
 
-        <div class="custom-bid-box" onclick="document.getElementById('input-${id}').focus()">
+        <div class="custom-bid-box" onclick="focusBidInput('${id}')"
           <input 
             id="input-${id}" 
             type="number" 
@@ -355,8 +355,7 @@ oninput="startInteraction()"
     });
 }
 
-<div class="custom-bid-box" 
-     onclick="focusBidInput('${id}')">
+
 
 let currentGuest = user.name;
 console.log("CURRENT GUEST VALUE:", currentGuest);
