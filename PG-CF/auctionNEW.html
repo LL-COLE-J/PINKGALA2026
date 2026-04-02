@@ -181,6 +181,11 @@ color: #333;
 
 </div>
 
+  <div id="auctionItems">
+  <div style="text-align:center; font-size:22px; padding:40px;">
+    Loading auction items...
+  </div>
+</div>
 
 
 <div id="auctionPage">
@@ -191,11 +196,11 @@ color: #333;
 </div>
 
   <!-- AUCTION ITEMS -->
-  <div id="auctionItems"></div>
-
+  <div id="auctionItems">
+  <div style="text-align:center; font-size:22px; padding:40px;">
+    Loading auction items...
+  </div>
 </div>
-
-
 
 
 <script>
@@ -477,6 +482,7 @@ async function fetchItems(){
   console.log("PARSED:", data);
 
   currentItems = data;
+  localStorage.setItem("auctionItems", JSON.stringify(currentItems));
 
   console.log("FINAL ITEMS:", currentItems);
 
@@ -514,6 +520,17 @@ async function placeQuickBid(id, amt, btn){
       })
     });
 
+    const cached = localStorage.getItem("auctionItems");
+
+if (cached) {
+  try {
+    const parsed = JSON.parse(cached);
+    renderItems(parsed); // instant UI
+  } catch (e) {
+    console.error("Cache parse failed", e);
+  }
+}
+
     const result = await res.json();
 
     if (result.success === true) {
@@ -536,23 +553,28 @@ function goHome(){
   window.location.href = "/";
 }
 
-window.onload = () => {
+ const cached = localStorage.getItem("auctionItems");
+  if (cached) {
+    try {
+      renderItems(JSON.parse(cached));
+    } catch {}
+  }
 
-  console.log("Auction loaded for:", user);
+  // 2. THEN fetch fresh data
+  fetchItems();
 
-  // Show user info
+  // 3. THEN UI setup
   document.getElementById("userInfo").innerText =
     `${user.name} | Bidder #${user.bidderId} | Table ${user.table}`;
 
-  // Initial load
-  fetchItems();
-
-  // 🔥 AUTO REFRESH EVERY 3 SECONDS
+  // 4. Auto refresh stays the same
   setInterval(() => {
-  if (!isInteracting) {
-    fetchItems();
-  }
-}, 3000);
+    if (!isInteracting) {
+      fetchItems();
+    }
+  }, 3000);
+
+});
 
 }
 
