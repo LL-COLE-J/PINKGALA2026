@@ -513,26 +513,36 @@ function endInteraction() {
   }, 10000);
 }
 
-  function autoScaleCards() {
+ function autoScaleCards() {
   document.querySelectorAll(".bid-item").forEach(card => {
     const inner = card.querySelector(".card-inner");
     if (!inner) return;
 
-    // reset scale first
+    const prevScale = inner.dataset.scale;
+
+    // reset to measure
     inner.style.transform = "scale(1)";
+    inner.style.marginTop = "0px";
 
     const cardHeight = card.clientHeight;
     const contentHeight = inner.scrollHeight;
 
     if (!contentHeight) return;
 
-    const scale = Math.min(cardHeight / contentHeight, 1.7);
+    const newScale = Math.min(cardHeight / contentHeight, 1.85);
 
-    inner.style.transform = `scale(${scale})`;
+    // 🔥 STOP micro-adjust jitter
+    if (prevScale && Math.abs(prevScale - newScale) < 0.02) {
+      return;
+    }
+
+    inner.style.transform = `scale(${newScale})`;
     inner.style.transformOrigin = "top center";
 
-    // slight visual centering tweak
-    inner.style.marginTop = `${(cardHeight - contentHeight * scale) / 2}px`;
+    inner.style.marginTop = `${(cardHeight - contentHeight * newScale) / 2}px`;
+
+    // store scale
+    inner.dataset.scale = newScale;
   });
 }
 
