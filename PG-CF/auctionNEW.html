@@ -290,6 +290,7 @@ function toggleMyBids() {
   }
 
   renderItems(currentItems);
+setTimeout(autoScaleCards, 50);
 }
   
 
@@ -561,7 +562,6 @@ async function fetchItems(){
 
   console.log("FINAL ITEMS:", currentItems);
 
-  renderItems(currentItems);
 }
 
   function focusBidInput(id) {
