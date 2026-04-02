@@ -347,6 +347,19 @@ const nextBid = effectiveBid + increment;
     onfocus="startInteraction()" 
     oninput="startInteraction()"
   >
+  <div class="custom-bid-box" onclick="focusBidInput('${id}')">
+
+  <div style="font-size:20px; font-weight:700; margin-bottom:8px; color:#d63384;">
+    Enter Custom Bid
+  </div>
+
+  <input 
+    id="input-${id}" 
+    type="number" 
+    placeholder="Custom bid"
+    onfocus="startInteraction()" 
+    oninput="startInteraction()"
+  >
 
   <button onclick="placeCustomBid('${id}', this)" 
     style="font-size:22px; padding:18px;">
@@ -354,11 +367,9 @@ const nextBid = effectiveBid + increment;
   </button>
 
 </div>
-         <button onclick="placeCustomBid('${id}', this)" 
-  style="font-size:22px; padding:18px;">
-  Submit Bid
-</button>
-        </div>
+
+  
+        
 
         <div id="status-${id}" style="margin-top:8px;"></div>
       `;
