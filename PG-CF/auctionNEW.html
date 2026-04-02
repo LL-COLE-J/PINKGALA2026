@@ -63,6 +63,13 @@ h1 {
   text-align: center;
 }
 
+  .custom-bid-box {
+  margin-top: 18px;
+  padding: 12px;
+  border-radius: 16px;
+  background: rgba(255,255,255,0.15);
+}
+
 
 .bid-item.winning {
   background: #e8f7ee;
@@ -85,13 +92,16 @@ button {
 }
 
 input {
-  padding: 26px;
-  font-size: 26px;
-  border-radius: 12px;
-  border: 1px solid #ccc;
+  padding: 30px;
+  font-size: 28px;
+  border-radius: 14px;
+  border: 2px solid #fff;
+background: rgba(255,255,255,0.9);
+color: #333;
   width: 100%;
   text-align: center;
-  font=weight 600;
+  font-weight 700;
+  min-height: 80px;
 }
 
 .winning div:first-child {
@@ -145,7 +155,7 @@ input {
     width: 100%;
   }
 
-
+  
 }
 
 </style>
@@ -322,12 +332,13 @@ const nextBid = effectiveBid + increment;
           Bid $${nextBid}
         </button>
 
-        <div style="margin-top:16px; display:flex; flex-direction:column; gap:12px;">
+        <div class="custom-bid-box" onclick="document.getElementById('input-${id}').focus()">
           <input 
             id="input-${id}" 
             type="number" 
             placeholder="Custom bid"
             onfocus="startInteraction()"
+            
 oninput="startInteraction()"
           >
           <button onclick="placeCustomBid('${id}', this)">Submit</button>
