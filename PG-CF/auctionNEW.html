@@ -357,12 +357,14 @@ const nextBid = effectiveBid + increment;
   </div>
 
   <input 
-    id="input-${id}" 
-    type="number" 
-    placeholder="Custom bid"
-    onfocus="startInteraction()" 
-    oninput="startInteraction()"
-  >
+  id="input-${id}" 
+  type="number" 
+  inputmide="numeric"
+  placeholder="Custom bid"
+  onfocus="startInteraction()" 
+  oninput="startInteraction()"
+  onkeydown="handleBidEnter(event, '${id}', this)"
+>
   
   <button onclick="placeCustomBid('${id}', this)" 
     style="font-size:22px; padding:18px;">
@@ -574,6 +576,20 @@ async function placeQuickBid(id, amt, btn){
   }, 3000);
 
 });
+
+  function handleBidEnter(e, id, inputEl) {
+  if (e.key === "Enter") {
+    e.preventDefault();
+
+    // find the submit button in the same card
+    const card = inputEl.closest(".custom-bid-box");
+    const btn = card.querySelector("button");
+
+    if (btn) {
+      placeCustomBid(id, btn);
+    }
+  }
+}
 
 </script>
 </body>
