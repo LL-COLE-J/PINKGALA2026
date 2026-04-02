@@ -514,18 +514,26 @@ async function placeQuickBid(id, amt, btn){
       })
     });
 
-    document.addEventListener("DOMContentLoaded", () => {
+    
+}
+  document.addEventListener("DOMContentLoaded", () => {
 
   // 1. Load cached items instantly
+  const cached = localStorage.getItem("auctionItems");
+  if (cached) {
+    try {
+      renderItems(JSON.parse(cached));
+    } catch {}
+  }
 
-  // 2. Fetch fresh data
+  // 2. Fetch fresh data immediately
   fetchItems();
 
   // 3. Show user info
   document.getElementById("userInfo").innerText =
     `${user.name} | Bidder #${user.bidderId} | Table ${user.table}`;
 
-  // 4. Auto refresh
+  // 4. Auto refresh every 3 seconds
   setInterval(() => {
     if (!isInteracting) {
       fetchItems();
@@ -533,8 +541,6 @@ async function placeQuickBid(id, amt, btn){
   }, 3000);
 
 });
-
-}
 
 </script>
 </body>
