@@ -526,13 +526,13 @@ function endInteraction() {
 
     if (!contentHeight) return;
 
-    const scale = Math.min(cardHeight / contentHeight, 1.5);
+    const scale = Math.min(cardHeight / contentHeight, 1.7);
 
     inner.style.transform = `scale(${scale})`;
     inner.style.transformOrigin = "top center";
 
     // slight visual centering tweak
-    inner.style.marginTop = `${(cardHeight - contentHeight * scale) / 4}px`;
+    inner.style.marginTop = `${(cardHeight - contentHeight * scale) / 2}px`;
   });
 }
 
@@ -558,6 +558,8 @@ async function fetchItems(){
 
   currentItems = data;
   localStorage.setItem("auctionItems", JSON.stringify(currentItems));
+  renderItems(currentItems);
+setTimeout(autoScaleCards, 50);
 
   console.log("FINAL ITEMS:", currentItems);
 
@@ -570,7 +572,7 @@ async function fetchItems(){
     el.scrollIntoView({ behavior: "smooth", block: "center" });
   }
 }
-  setTimeout(autoScaleCards, 50);
+
 
 // ===== BID =====
 async function placeQuickBid(id, amt, btn){
