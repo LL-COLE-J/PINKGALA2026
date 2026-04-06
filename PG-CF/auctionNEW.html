@@ -6,195 +6,149 @@
 <title>2026 Pink Gala Auction</title>
 
 <style>
-
-/* ===== BASE ===== */
-html {
-  font-size: 120%;
-}
+html { font-size: 120%; }
 
 body {
   font-family: Arial, sans-serif;
   background: radial-gradient(circle at top, #1a1c22, #0b0c10);
   margin: 0;
-  padding: 0;
   color: #e6e8ec;
 }
 
-/* ===== HEADER ===== */
+/* HEADER */
 h1 {
-  color: #cfd3dc;
   text-align: center;
-  letter-spacing: 1px;
-  font-weight: 700;
-}
-
-/* ===== LAYOUT ===== */
-.app-body {
-  width: 100%;
-  padding: 0 10px 40px 10px;
-}
-
-#auctionItems {
-  display: flex;
-  flex-direction: column;
-  gap: 22px;
-}
-
-/* ===== CARD ===== */
-.bid-item {
-  border-radius: 20px;
-  padding: 0;
-  background: linear-gradient(145deg, #1e2128, #16181d);
-  box-shadow:
-    0 10px 25px rgba(0,0,0,0.6),
-    0 0 0 1px rgba(255,255,255,0.05);
-
-  overflow: hidden;
-}
-
-/* ===== WINNING CARD ===== */
-.bid-item.winning {
-  border: 2px solid #4cd964;
-  box-shadow:
-    0 10px 30px rgba(0,0,0,0.7),
-    0 0 12px rgba(76,217,100,0.4);
-}
-
-/* ===== INNER FLEX ===== */
-.card-inner {
-  display: flex;
-  flex-direction: column;
-}
-
-/* ===== CARD CONTENT WRAP ===== */
-.card-content {
-  display: flex;
-  gap: 16px;
-  padding: 18px;
-}
-
-/* ===== IMAGE ===== */
-.item-image {
-  width: 180px;
-  height: 180px;
-  object-fit: cover;
-  border-radius: 14px;
-  flex-shrink: 0;
-  background: #111;
-}
-
-/* ===== TEXT AREA ===== */
-.card-text {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-
-/* ===== TITLE ===== */
-.item-title {
-  font-size: 40px;
   font-weight: 800;
-  margin-bottom: 10px;
+  font-size: 34px;
+  color: #ff4da6;
 }
 
-/* ===== BID BOX ===== */
-.bid-box {
-  background: rgba(255,255,255,0.04);
-  padding: 14px;
-  border-radius: 14px;
-  margin: 10px 0;
+/* ===== TOP BUTTONS (FIXED SIZE) ===== */
+.top-actions {
+  display: flex;
+  gap: 12px;
+  margin: 12px;
 }
 
-/* ===== AMOUNT ===== */
-.bid-amount {
-  font-size: 90px;
-  font-weight: 800;
-}
-
-/* ===== META ===== */
-.bid-meta {
-  font-size: 28px;
-  opacity: 0.85;
-}
-
-.bid-next {
-  font-size: 26px;
-  color: #9aa3b2;
-}
-
-/* ===== BUTTON ===== */
-button {
-  border: none;
-  border-radius: 14px;
-  padding: 22px;
-  font-size: 30px;
-  font-weight: bold;
-  cursor: pointer;
-  width: 100%;
-}
-
-/* PRIMARY BID */
-.bid-btn {
-  background: linear-gradient(135deg, #4cd964, #2ecc71);
-  color: #000;
-  margin-top: 12px;
-}
-
-/* ===== CUSTOM BID ===== */
-.custom-bid-box {
-  margin-top: 14px;
-  padding: 14px;
-  border-radius: 16px;
-  border: 1px dashed rgba(255,255,255,0.15);
-  background: rgba(255,255,255,0.03);
-}
-
-.custom-label {
-  font-size: 18px;
-  margin-bottom: 8px;
-  color: #aab2c2;
-}
-
-/* ===== INPUT ===== */
-input {
-  padding: 18px;
-  font-size: 26px;
-  border-radius: 12px;
-  border: 1px solid #444;
-  background: #0f1116;
-  color: #fff;
-  width: 100%;
-  text-align: center;
-  font-weight: 700;
-  margin-bottom: 10px;
-}
-
-/* ===== TOP BUTTONS ===== */
 .top-actions button {
-  background: #1a1c22;
-  color: #cfd3dc;
-  border: 1px solid rgba(255,255,255,0.08);
+  flex: 1;
+  padding: 28px;
+  font-size: 24px;
+
+  background: linear-gradient(145deg, #3a3f4a, #262a32);
+  color: #fff;
+  border-radius: 14px;
+
+  border: 1px solid rgba(255,255,255,0.25);
 }
 
-/* ===== MOBILE ===== */
-@media (max-width: 700px) {
+/* CARD */
+.bid-item {
+  margin: 12px;
+  border-radius: 20px;
+  background: #1e2128;
+  padding: 18px;
+}
 
-  .card-content {
-    flex-direction: column;
-  }
+/* IMAGE */
+.item-image {
+  width: 100%;
+  border-radius: 12px;
+  margin-bottom: 10px;
+}
 
-  .item-image {
-    width: 100%;
-    height: 220px;
-  }
+/* TITLE */
+.item-title {
+  font-size: 32px;
+  font-weight: 800;
+  color: #f1e9d2;
+}
 
-  .bid-amount {
-    font-size: 70px;
-  }
+  .custom-label {
+  font-size: 22px;
+  font-weight: 800;
+  margin-bottom: 12px;
+  color: #e6e8ec;
+}
 
-  .item-title {
-    font-size: 32px;
-  }
+/* BID */
+.bid-amount {
+  font-size: 80px;
+  font-weight: 900;
+}
+
+/* BUTTON BASE */
+button {
+  border-radius: 14px;
+  cursor: pointer;
+}
+
+/* BIG BID BUTTON */
+.bid-btn {
+  width: 100%;
+  padding: 30px;
+  font-size: 34px;
+  font-weight: bold;
+
+  background: linear-gradient(135deg, #5efc82, #38d96b);
+  color: #000;
+
+  margin-top: 14px;
+}
+
+/* ===== CUSTOM BID BOX (FAT FINGER FIX) ===== */
+.custom-bid-box {
+  margin-top: 16px;
+  padding: 20px; /* 🔥 bigger hit zone */
+
+  background: #2a2d36;
+  border-radius: 16px;
+}
+
+/* INPUT */
+input {
+  width: 100%;
+  padding: 22px; /* 🔥 bigger */
+  font-size: 30px;
+
+  margin-bottom: 14px;
+
+  background: #fff;
+  color: #000;
+
+  border-radius: 14px;
+}
+
+/* SUBMIT */
+.custom-bid-box button {
+  width: 100%;
+  padding: 22px; /* 🔥 bigger */
+  font-size: 28px;
+
+  background: #cfd3dc;
+  color: #000;
+}
+
+/* POPUP */
+.bid-popup {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%) scale(0.9);
+  background: #38d96b;
+  color: #000;
+  padding: 18px 28px;
+  border-radius: 12px;
+  font-size: 22px;
+  font-weight: bold;
+  opacity: 0;
+  transition: all 0.25s ease;
+  z-index: 9999;
+}
+
+.bid-popup.show {
+  opacity: 1;
+  transform: translateX(-50%) scale(1);
 }
 
 </style>
@@ -204,137 +158,147 @@ input {
 
 <h1>2026 Pink Gala Auction</h1>
 
-<div class="app-body">
-
 <div class="top-actions">
-
   <button onclick="goHome()">🏠 Home</button>
-  <button onclick="toggleMyBids()" id="myBidsBtn">🎯 My Bids</button>
-
+  <button onclick="toggleMyBids()">🎯 My Bids</button>
 </div>
 
-<div id="auctionPage">
+<div id="auctionItems">Loading...</div>
 
-<div style="text-align:center; margin-bottom:20px;">
-  <strong id="userInfo"></strong>
-</div>
-
-<div id="auctionItems">
-  <div class="loading-state">⏳ Loading auction items...</div>
-</div>
+<div id="bidPopup" class="bid-popup">Bid Submitted!</div>
 
 <script>
 
-/* ===== YOUR JS IS 100% UNTOUCHED ===== */
-/* ONLY renderItems HTML changed below */
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwjcBzFLO9XFpkWhbTLaRdG4DqpAbrvmnEPc9EwwG6eTwfG73UTQGZD2-U10aeUCV-6/exec";
 
-function renderItems(items) {
+let isInteracting = false;
+let interactionTimeout;
 
-  const div = document.getElementById("auctionItems");
-  if (!div) return;
+/* 20s INTERACTION */
+function startInteraction(){
+  isInteracting = true;
+  clearTimeout(interactionTimeout);
+  interactionTimeout = setTimeout(()=> isInteracting=false, 20000);
+}
 
-  if (!items || items.length === 0) {
-    div.innerHTML = "<p>No items available</p>";
-    return;
+function focusBidInput(id){
+  const el = document.getElementById(`input-${id}`);
+  if(el && document.activeElement !== el){
+    el.focus();
+    startInteraction();
   }
+}
 
+function handleBidEnter(e, id){
+  if(e.key === "Enter"){
+    placeCustomBid(id);
+  }
+}
+
+/* POPUP */
+function showBidPopup(){
+  const popup = document.getElementById("bidPopup");
+  popup.classList.add("show");
+  setTimeout(()=> popup.classList.remove("show"), 1500);
+}
+
+/* RENDER */
+function renderItems(items){
+  
+  const div = document.getElementById("auctionItems");
   div.innerHTML = "";
 
-  let filteredItems = items
-    .filter(i => i && (i.name || i.ItemName))
-    .filter(i => {
-      const status = (i.status || "").toLowerCase();
-      return status === "open" || status === "";
-    });
+  items.forEach(item=>{
+    const id = item.item_id;
+    const bid = item.current_bid || 0;
 
-  if (showMyBidsOnly) {
-    filteredItems = filteredItems.filter(i =>
-      String(i.current_winner) === String(currentBidder)
-    );
-  }
+    div.innerHTML += `
+      <div class="bid-item">
 
-  filteredItems
-    .sort((a, b) => (parseFloat(b.current_bid) || 0) - (parseFloat(a.current_bid) || 0))
-    .forEach(item => {
+        ${item.image ? `<img class="item-image" src="${item.image}">` : ""}
 
-      const id = item.item_id || item.ItemID;
-      const name = item.name || item.ItemName;
-      const startingBid = parseFloat(item.starting_bid || item.StartingBid) || 0;
-      const currentBidRaw = parseFloat(item.current_bid);
+        <div class="item-title">${item.name}</div>
 
-      const effectiveBid = (!isNaN(currentBidRaw) && currentBidRaw > 0)
-        ? currentBidRaw
-        : startingBid;
+        <div class="bid-amount">$${bid}</div>
 
-      const winner = item.current_winner || "-";
-      const image = item.image || "";
-      const increment = parseFloat(item.bid_increment) || 50;
-      const nextBid = effectiveBid + increment;
-      const isWinning = String(item.current_winner) === String(currentBidder);
-
-      const card = document.createElement("div");
-      card.className = "bid-item";
-      if (isWinning) card.classList.add("winning");
-
-      card.innerHTML = `
-<div class="card-inner">
-
-  <div class="card-content">
-
-    ${image ? `
-      <img class="item-image" src="${image}" onerror="this.style.display='none';">
-    ` : ""}
-
-    <div class="card-text">
-
-      ${isWinning ? `<div style="color:#4cd964; font-weight:bold;">🏆 YOU ARE WINNING</div>` : ""}
-
-      <div class="item-title">${name}</div>
-
-      <div class="bid-box">
-        <div class="bid-amount">$${effectiveBid}</div>
-        <div class="bid-meta">Leader: ${winner}</div>
-        <div class="bid-next">Next: $${nextBid}</div>
-      </div>
-
-      <button 
-        class="bid-btn"
-        onclick="placeQuickBid('${id}', ${nextBid}, this)">
-        Bid $${nextBid}
-      </button>
-
-      <div class="custom-bid-box" onclick="focusBidInput('${id}')">
-
-        <div class="custom-label">Enter Custom Bid</div>
-
-        <input 
-          id="input-${id}" 
-          type="text"
-          inputmode="numeric"
-          onfocus="startInteraction()" 
-          oninput="startInteraction()"
-          onkeydown="handleBidEnter(event, '${id}', this)">
-
-        <button onclick="placeCustomBid('${id}', this)">
-          Submit Bid
+        <button class="bid-btn"
+          onclick="placeQuickBid('${id}', ${bid+50}, this)">
+          Bid $${bid+50}
         </button>
 
+        <div class="custom-bid-box" onclick="focusBidInput('${id}')">
+
+  <div class="custom-label">Place Custom Bid</div>
+
+  <input
+    id="input-${id}"
+    inputmode="numeric"
+    onfocus="startInteraction()"
+    onkeydown="handleBidEnter(event, '${id}')"
+  >
+
+          <button onclick="placeCustomBid('${id}')">
+            Submit Bid
+          </button>
+
+        </div>
+
       </div>
-
-      <div id="status-${id}"></div>
-
-    </div>
-  </div>
-</div>
-      `;
-
-      div.appendChild(card);
-    });
+    `;
+  });
 }
+
+/* FETCH */
+async function fetchItems(){
+  const res = await fetch(`${SCRIPT_URL}?items=true`);
+  const data = await res.json();
+  renderItems(data);
+}
+
+/* QUICK BID */
+async function placeQuickBid(id, amt, btn){
+  btn.disabled = true;
+
+  await fetch(SCRIPT_URL,{
+    method:"POST",
+    body:new URLSearchParams({
+      bid:true,
+      item_id:id,
+      amount:amt
+    })
+  });
+
+  btn.disabled=false;
+  showBidPopup();
+  fetchItems();
+}
+
+/* CUSTOM BID */
+async function placeCustomBid(id){
+  const val = document.getElementById(`input-${id}`).value;
+
+  await fetch(SCRIPT_URL,{
+    method:"POST",
+    body:new URLSearchParams({
+      bid:true,
+      item_id:id,
+      amount:val
+    })
+  });
+
+  showBidPopup();
+  fetchItems();
+}
+
+/* NAV */
+function goHome(){ window.location.href="/"; }
+function toggleMyBids(){}
+
+/* INIT */
+fetchItems();
+setInterval(()=>{ if(!isInteracting) fetchItems(); },3000);
 
 </script>
 
-</div>
-</div>
 </body>
 </html>
