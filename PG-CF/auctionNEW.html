@@ -293,16 +293,13 @@ async function fetchItems() {
 
   try {
 
-    const res = await fetch(`${SCRIPT_URL}?items=true`, {
-      method: "GET",
-      mode: "no-cors"
-    });
+    const res = await fetch(`${SCRIPT_URL}?items=true`);
+    const data = await res.json();
 
-    // ❌ you cannot read response in no-cors
-    console.log("items fetch sent");
+    renderItems(data);
 
   } catch (err) {
-    console.error("fetch failed", err);
+    console.error("Fetch failed", err);
   }
 }
 
@@ -329,6 +326,10 @@ function renderItems(items){
       </div>
     `;
   });
+}
+
+  function goHome() {
+  window.location.href = "checkin.html";
 }
 
 /* INIT */
