@@ -37,7 +37,6 @@ h1{ color:#d63384; }
   background:linear-gradient(135deg,#d63384,#ff66a3);
   color:white;
   border-radius:18px;
-  cursor:pointer;
 }
 
 .tableNumber{ font-size:120px; }
@@ -48,10 +47,10 @@ input{
   padding:20px;
   font-size:24px;
   width:100%;
-  max-width:420px;   /* 👈 controls width */
+  max-width:420px;
   border-radius:10px;
   box-sizing:border-box;
-  margin:0 auto;     /* 👈 centers it */
+  margin:0 auto;
   display:block;
 }
 
@@ -64,14 +63,6 @@ button{
   color:white;
   border:none;
   border-radius:10px;
-}
-
-.matchButton{
-  display:block;
-  width:100%;
-  margin:8px 0;
-  padding:18px;
-  font-size:20px;
 }
 
 #status{
@@ -93,13 +84,10 @@ button{
 
 <input id="searchInput" placeholder="Search guest..." />
 
-
 <div id="guestList"></div>
 
-
 <div id="loading">Loading guest list...</div>
-<div id="status" style="display:none;"></div>
-
+<div id="status"></div>
 
 </div>
 
@@ -107,294 +95,119 @@ button{
 
 <script>
 
-function enterAuction(name, bidder, table) {
-  const url = `auctionNEW.html?name=${encodeURIComponent(name)}&bidder=${bidder}&table=${table}`;
-  window.location.href = url;
-}
-
-const expectedIds = new Set();
-
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwjcBzFLO9XFpkWhbTLaRdG4DqpAbrvmnEPc9EwwG6eTwfG73UTQGZD2-U10aeUCV-6/exec";
 
-/* =========================
-   STATE (FAST + STABLE)
-========================= */
 let guestList = [];
 const guestMap = {};
 const checkedInSet = new Set();
-
-const checkInQueue = [];
-let isProcessing = false;
 
 /* =========================
    LOAD GUESTS
 ========================= */
 function loadGuests() {
 
-  console.log("Loading guests from local file...");
-
-  // 🔥 USE LOCAL DATA INSTEAD OF FETCH
   if (typeof GUESTS === "undefined") {
-  console.error("GUESTS NOT LOADED");
-  guestList = [];
-} else {
-  guestList = GUESTS.map((g, i) => ({
-    id: g.id || i.toString(),
-    name: g.name,
-    bidder: g.bidder,
-    table: g.table,
-    checked: false
-  }));
-}
-
-  guestList.forEach(g => guestMap[g.id] = g);
-
-  renderList([]);
-
-  // Hide loading
-document.getElementById("loading").style.display = "none";
-
-// Show status
-const statusEl = document.getElementById("status");
-statusEl.style.display = "block";
-statusEl.innerText = "Enter Name";
-
-}
-/* =========================
-   RENDER
-========================= */
-function renderList(list) {
-  const container = document.getElementById("guestList");
-  container.innerHTML = "";
-
-  list.forEach(g => {
-    const div = document.createElement("div");
-
-    // 🎯 MATCH BUTTON STYLE
-    div.style.marginTop = "10px";
-    div.style.padding = "18px";
-    div.style.fontSize = "20px";
-    div.style.background = "#d63384";
-    div.style.color = "white";
-    div.style.borderRadius = "10px";
-    div.style.cursor = "pointer";
-    div.style.transition = "0.2s";
-
-    div.onmouseover = () => div.style.opacity = "0.85";
-    div.onmouseout = () => div.style.opacity = "1";
-
-    div.onclick = () => handleCheckIn(g.id);
-
-    const status = g.checked
-  ? " <span style='color:lightgreen;'>✔</span>"
-  : "";
-
-    div.innerHTML = `
-      ${g.name}${status}
-    `;
-
-    container.appendChild(div);
-  });
-}
-
-/* =========================
-   SEARCH (DEBOUNCED)
-========================= */
-function debounce(fn, delay = 200) {
-  let t;
-  return (...args) => {
-    clearTimeout(t);
-    t = setTimeout(() => fn(...args), delay);
-  };
-}
-
-function handleSearch(e) {
-  const term = (e.target.value || "").toLowerCase().trim();
-
-  if (!term) {
-    renderList([]);
-    document.getElementById("status").innerText = "Enter Name";
+    console.error("GUESTS NOT LOADED");
     return;
   }
 
-  const filtered = guestList
-    .filter(g => (g.name || "").toLowerCase().includes(term))
-    .slice(0, 10);
+  guestList = GUESTS.map((g, i) => ({
+    id: String(g.id || i),
+    name: g.name,
+    bidder: g.bidder,
+    table: g.table
+  }));
 
-  renderList(filtered);
+  guestList.forEach(g => guestMap[g.id] = g);
 
-  document.getElementById("status").innerText =
-    `${filtered.length} match(es)`;
+  document.getElementById("loading").style.display = "none";
+  document.getElementById("status").innerText = "Start typing name";
+
 }
 
+/* =========================
+   SEARCH
+========================= */
+function handleSearch(e) {
+  const term = (e.target.value || "").toLowerCase().trim();
 
+  const container = document.getElementById("guestList");
+  container.innerHTML = "";
+
+  if (!term) return;
+
+  const results = guestList
+    .filter(g => g.name.toLowerCase().includes(term))
+    .slice(0, 10);
+
+  results.forEach(g => {
+    const div = document.createElement("div");
+    div.className = "matchButton";
+    div.innerText = g.name;
+    div.onclick = () => handleCheckIn(g.id);
+    container.appendChild(div);
+  });
+
+  document.getElementById("status").innerText = `${results.length} match(es)`;
+}
 
 /* =========================
-   CHECK-IN (SAFE)
+   CHECK-IN
 ========================= */
 function handleCheckIn(id) {
-  
+
   if (checkedInSet.has(id)) return;
 
-checkedInSet.add(id);
-
-
-  queueCheckIn({ id });   // ✅ calls the REAL queue
-
-  setTimeout(() => {
-    checkedInSet.delete(id);
-  }, 10000);
+  checkedInSet.add(id);
 
   const guest = guestMap[id];
 
+  // 🔥 SEND TO GAS (CLEAN + RELIABLE)
+  const url = `${SCRIPT_URL}?ids=${encodeURIComponent(JSON.stringify([id]))}`;
+  fetch(url);
+
+  // UI update
   document.getElementById("guestList").innerHTML = `
-  <div class="tableCard">
-    <div class="welcomeName">${guest.name}</div>
-    <div class="tableNumber">${guest.table || "-"}</div>
-    <div class="bidderNumber">Bidder #${guest.bidder || "-"}</div>
+    <div class="tableCard">
+      <div class="welcomeName">${guest.name}</div>
+      <div class="tableNumber">${guest.table || "-"}</div>
+      <div class="bidderNumber">Bidder #${guest.bidder || "-"}</div>
 
-    <div style="margin-top:15px;font-size:20px;">
-      ✅ Checked In
+      <div style="margin-top:15px;font-size:20px;">
+        ✅ Checked In
+      </div>
+
+      <button onclick="enterAuction('${guest.name}', '${guest.bidder}', '${guest.table}')">
+        Enter Auction
+      </button>
     </div>
+  `;
 
-    <button onclick="enterAuction('${guest.name}', '${guest.bidder}', '${guest.table}')">
-  Enter Live Auction Starting Bid 
-</button>
-
-    <div style="margin-top:10px;font-size:14px;opacity:0.8;">
-      Or tap anywhere to go back
-    </div>
-  </div>
-`;
-
-confetti({
-  particleCount: 60,
-  spread: 70,
-  origin: { y: 0.6 }
-});
+  confetti({
+    particleCount: 60,
+    spread: 70,
+    origin: { y: 0.6 }
+  });
 
 }
-
-
-
-   
 
 /* =========================
-   QUEUE SYSTEM (RELIABLE)
+   NAVIGATION
 ========================= */
-const BATCH_SIZE = 20;
-
-function queueCheckIn(data) {
-  expectedIds.add(data.id); // 🔥 track it
-  checkInQueue.push(data);
-  processQueue();
+function enterAuction(name, bidder, table) {
+  const url = `auctionNEW.html?name=${encodeURIComponent(name)}&bidder=${bidder}&table=${table}`;
+  window.location.href = url;
 }
-
-async function processQueue() {
-  if (isProcessing) return;
-
-  isProcessing = true;
-
-  while (true) {
-
-    if (checkInQueue.length === 0) {
-      break;
-    }
-
-    // 🔒 LOCK snapshot of queue
-    const batch = checkInQueue.slice(0, BATCH_SIZE);
-
-    // 🔥 REMOVE ONLY what we took
-    checkInQueue.splice(0, batch.length);
-
-    try {
-      await sendBatch(batch);
-
-      // small pacing
-      await new Promise(r => setTimeout(r, 75));
-
-    } catch (err) {
-      console.error("Retrying batch...", err);
-
-      // 🔥 CRITICAL: safely re-add to FRONT
-      checkInQueue.push(...batch);
-
-      await new Promise(r => setTimeout(r, 200));
-    }
-  }
-
-  isProcessing = false;
-}
-
-
-async function sendBatch(batch, attempt = 1) {
-
-  const idsToSend = batch.map(b => String(b.id));
-
-  try {
-
-    const url = `${SCRIPT_URL}?ids=${encodeURIComponent(JSON.stringify(idsToSend))}`;
-
-    await fetch(url);
-
-    console.log("✅ SENT:", idsToSend);
-
-    // simulate success
-    const processed = idsToSend;
-
-    const failed = idsToSend.filter(id => !processed.includes(id));
-
-    if (failed.length > 0) {
-      checkInQueue.push(...failed.map(id => ({ id })));
-    }
-
-  } catch (err) {
-
-    
-    console.error("❌ FAILED:", idsToSend);
-    checkInQueue.push(...batch);
-  }
-}
-
-  
 
 /* =========================
    INIT
 ========================= */
 window.addEventListener("DOMContentLoaded", () => {
-  const input = document.getElementById("searchInput");
-
-  input.addEventListener("input", debounce(handleSearch));
-
-  input.addEventListener("keypress", (e) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-
-      const term = input.value.toLowerCase().trim();
-
-      const match = guestList.find(g =>
-        (g.name || "").toLowerCase().includes(term)
-      );
-
-      if (match) {
-        handleCheckIn(match.id);
-      }
-    }
-  });
-
-  // 🔥 THIS WAS MISSING
   loadGuests();
+
+  document.getElementById("searchInput")
+    .addEventListener("input", handleSearch);
 });
-
-function resetCheckIn() {
-  document.getElementById("guestList").innerHTML = "";
-  document.getElementById("searchInput").value = "";
-  document.getElementById("searchInput").focus();
-
-document.getElementById("status").innerText = "Enter Name";;
-}
-
-
 
 </script>
 
