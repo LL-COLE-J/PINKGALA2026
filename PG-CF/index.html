@@ -12,6 +12,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 
 <style>
+/* 🔥 YOUR CSS UNCHANGED */
 body{
   font-family:'Poppins',sans-serif;
   margin:0;
@@ -101,113 +102,80 @@ let guestList = [];
 const guestMap = {};
 const checkedInSet = new Set();
 
-/* =========================
-   LOAD GUESTS
-========================= */
+/* LOAD */
 function loadGuests() {
-
-  if (typeof GUESTS === "undefined") {
-    console.error("GUESTS NOT LOADED");
-    return;
-  }
-
-  guestList = GUESTS.map((g, i) => ({
-    id: String(g.id || i),
-    name: g.name,
-    bidder: g.bidder,
-    table: g.table
+  guestList = GUESTS.map((g,i)=>({
+    id:String(g.id||i),
+    name:g.name,
+    bidder:g.bidder,
+    table:g.table
   }));
+  guestList.forEach(g=>guestMap[g.id]=g);
 
-  guestList.forEach(g => guestMap[g.id] = g);
-
-  document.getElementById("loading").style.display = "none";
-  document.getElementById("status").innerText = "Start typing name";
-
+  document.getElementById("loading").style.display="none";
+  document.getElementById("status").innerText="Start typing name";
 }
 
-/* =========================
-   SEARCH
-========================= */
-function handleSearch(e) {
-  const term = (e.target.value || "").toLowerCase().trim();
+/* SEARCH */
+function handleSearch(e){
+  const term=e.target.value.toLowerCase().trim();
+  const container=document.getElementById("guestList");
+  container.innerHTML="";
 
-  const container = document.getElementById("guestList");
-  container.innerHTML = "";
+  if(!term)return;
 
-  if (!term) return;
+  const results=guestList.filter(g=>g.name.toLowerCase().includes(term)).slice(0,10);
 
-  const results = guestList
-    .filter(g => g.name.toLowerCase().includes(term))
-    .slice(0, 10);
-
-  results.forEach(g => {
-    const div = document.createElement("div");
-    div.className = "matchButton";
-    div.innerText = g.name;
-    div.onclick = () => handleCheckIn(g.id);
+  results.forEach(g=>{
+    const div=document.createElement("div");
+    div.className="matchButton";
+    div.innerText=g.name;
+    div.onclick=()=>handleCheckIn(g.id);
     container.appendChild(div);
   });
 
-  document.getElementById("status").innerText = `${results.length} match(es)`;
+  document.getElementById("status").innerText=`${results.length} match(es)`;
 }
 
-/* =========================
-   CHECK-IN
-========================= */
-function handleCheckIn(id) {
+/* CHECK-IN */
+function handleCheckIn(id){
 
-  if (checkedInSet.has(id)) return;
-
+  if(checkedInSet.has(id))return;
   checkedInSet.add(id);
 
-  const guest = guestMap[id];
+  const guest=guestMap[id];
 
-  // 🔥 SEND TO GAS (CLEAN + RELIABLE)
-  const url = `${SCRIPT_URL}?ids=${encodeURIComponent(JSON.stringify([id]))}`;
-  fetch(url);
+  // 🔥 WORKING WRITE
+  fetch(`${SCRIPT_URL}?ids=${encodeURIComponent(JSON.stringify([id]))}`);
 
-  // UI update
-  document.getElementById("guestList").innerHTML = `
+  document.getElementById("guestList").innerHTML=`
     <div class="tableCard">
       <div class="welcomeName">${guest.name}</div>
-      <div class="tableNumber">${guest.table || "-"}</div>
-      <div class="bidderNumber">Bidder #${guest.bidder || "-"}</div>
+      <div class="tableNumber">${guest.table||"-"}</div>
+      <div class="bidderNumber">Bidder #${guest.bidder||"-"}</div>
 
       <div style="margin-top:15px;font-size:20px;">
         ✅ Checked In
       </div>
 
-      <button onclick="enterAuction('${guest.name}', '${guest.bidder}', '${guest.table}')">
+      <button onclick="enterAuction('${guest.name}','${guest.bidder}','${guest.table}')">
         Enter Auction
       </button>
     </div>
   `;
 
-  confetti({
-    particleCount: 60,
-    spread: 70,
-    origin: { y: 0.6 }
-  });
-
+  confetti({particleCount:60,spread:70,origin:{y:0.6}});
 }
 
-/* =========================
-   NAVIGATION
-========================= */
-function enterAuction(name, bidder, table) {
-  const url = `auctionNEW.html?name=${encodeURIComponent(name)}&bidder=${bidder}&table=${table}`;
-  window.location.href = url;
+function enterAuction(name,bidder,table){
+  window.location.href=`auctionNEW.html?name=${encodeURIComponent(name)}&bidder=${bidder}&table=${table}`;
 }
 
-/* =========================
-   INIT
-========================= */
-window.addEventListener("DOMContentLoaded", () => {
+/* INIT */
+window.onload=()=>{
   loadGuests();
-
-  document.getElementById("searchInput")
-    .addEventListener("input", handleSearch);
-});
+  document.getElementById("searchInput").addEventListener("input",handleSearch);
+};
 
 </script>
 
