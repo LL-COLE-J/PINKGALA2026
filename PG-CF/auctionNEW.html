@@ -235,21 +235,25 @@ function renderItems(items){
 
 <div class="custom-bid-box">
 
-  <div class="custom-label">Place Custom Bid</div>
+  <div class="custom-input-wrap">
 
-  <input
-  id="input-${id}"
-  inputmode="numeric"
-  onfocus="startInteraction()"
-  onclick="event.stopPropagation()"
-  onkeydown="handleBidEnter(event, '${id}')"
->
+    <div class="custom-label">Place Custom Bid</div>
 
-          <button onclick="placeCustomBid('${id}')">
-            Submit Bid
-          </button>
+    <input
+      id="input-${id}"
+      inputmode="numeric"
+      onfocus="startInteraction()"
+      onclick="event.stopPropagation()"
+      onkeydown="handleBidEnter(event, '${id}')"
+    >
 
-        </div>
+  </div>
+
+  <button onclick="placeCustomBid('${id}')">
+    Submit Bid
+  </button>
+
+</div>
 
       </div>
     `;
