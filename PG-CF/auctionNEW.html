@@ -237,6 +237,15 @@ let currentItems = [];
 
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwjcBzFLO9XFpkWhbTLaRdG4DqpAbrvmnEPc9EwwG6eTwfG73UTQGZD2-U10aeUCV-6/exec";
 
+function sendBid(data) {
+  const blob = new Blob(
+    [JSON.stringify(data)],
+    { type: "application/json" }
+  );
+
+  navigator.sendBeacon(SCRIPT_URL, blob);
+}
+  
 let isInteracting = false;
 let interactionTimeout;
 
@@ -308,7 +317,7 @@ const statusClass = isWinning ? "status-winning" : "status-losing";
 
         ${item.image ? `<img class="item-image" src="${item.image}">` : ""}
 
-        <div class="item-title">${item.name}</div>
+        <div class="item-title">${item_name}</div>
 
         <div class="bid-amount">$${bid}</div>
 
@@ -359,43 +368,46 @@ renderItems(data);
 }
 
 /* QUICK BID */
-/* QUICK BID */
-async function placeQuickBid(id, amt, btn){
+
+function placeQuickBid(id, amt, btn){
 
   btn.disabled = true;
 
-  await fetch(SCRIPT_URL,{
-  method:"POST",
-  mode: "no-cors",   // 🔥 ADD THIS
-  body:new URLSearchParams({
-    bid:true,
-    item_id:id,
-    bidder_id: currentBidder,
-    bidder_name: currentGuest,
-    amount:amt
-  })
-});
+  sendBid({
+    action: "placeBid",
+    itemId: id,
+    bidderId: currentBidder,
+    bidderName: currentGuest,
+    bidAmount: amt
+  });
 
   btn.disabled = false;
 
   showBidPopup();
   fetchItems();
 }
-/* CUSTOM BID */
-async function placeCustomBid(id){
-  const val = document.getElementById(`input-${id}`).value;
 
- await fetch(SCRIPT_URL,{
-  method:"POST",
-  mode: "no-cors",   // 🔥 ADD THIS
-  body:new URLSearchParams({
-    bid:true,
-    item_id:id,
-    bidder_id: currentBidder,
-    bidder_name: currentGuest,
-    amount:amt
-  })
-});
+  
+  /* CUSTOM BID */
+function placeCustomBid(id){
+
+  const input = document.getElementById(`input-${id}`);
+  const val = Number(input.value);
+
+  if(!val){
+    alert("Enter a valid bid");
+    return;
+  }
+
+  sendBid({
+    action: "placeBid",
+    itemId: id,
+    bidderId: currentBidder,
+    bidderName: currentGuest,
+    bidAmount: val
+  });
+
+  input.value = "";
 
   showBidPopup();
   fetchItems();
