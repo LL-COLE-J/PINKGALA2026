@@ -1,9 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Live Auction</title>
+
+<style>
+body {
+  font-family: 'Poppins', sans-serif;
+  background: #f5f6fa;
+  margin: 0;
+  padding: 20px;
+}
+
+h2 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+#items {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 15px;
+}
+
+.item {
+  background: white;
+  border-radius: 15px;
+  padding: 15px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  transition: 0.2s;
+}
+
+.item:hover {
+  transform: translateY(-3px);
+}
+
+.item h3 {
+  margin: 0 0 10px;
+}
+
+.bid {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+input {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 8px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+button {
+  width: 100%;
+  padding: 10px;
+  border: none;
+  border-radius: 10px;
+  background: #ff4d6d;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #e84360;
+}
+</style>
+
+</head>
+<body>
+
+<h2>Live Auction</h2>
+<div id="items"></div>
+
 <script>
 const API = "https://mute-fog-a9af.llcolej8.workers.dev";
 
 let loading = false;
 
-// LOAD
+// LOAD ITEMS
 async function loadAuction() {
   if (loading) return;
   loading = true;
@@ -21,41 +98,60 @@ async function loadAuction() {
 
       div.innerHTML = `
         <h3>${item.name}</h3>
-        <p>$${item.currentBid}</p>
-        <input type="number" id="bid-${item.itemId}" />
-        <button onclick="bid('${item.itemId}')">Bid</button>
+        <div class="bid">$${item.currentBid}</div>
+        <input type="number" id="bid-${item.itemId}" placeholder="Enter bid">
+        <button onclick="placeBid('${item.itemId}')">Place Bid</button>
       `;
 
       container.appendChild(div);
     });
 
   } catch (e) {
-    console.error("LOAD FAIL", e);
+    console.error("LOAD ERROR", e);
   }
 
   loading = false;
 }
 
-// BID (GET VERSION — NO JSON ISSUES)
-async function bid(id) {
-  const val = Number(document.getElementById("bid-" + id).value);
-  if (!val) return alert("Enter bid");
+// PLACE BID
+async function placeBid(itemId) {
+  const input = document.getElementById("bid-" + itemId);
+  const bid = Number(input.value);
+
+  if (!bid) return alert("Enter valid bid");
 
   try {
-    const res = await fetch(API + "?itemId=" + id + "&bid=" + val);
-    const r = await res.json();
+    const res = await fetch(API, {
+      method: "POST",
+      headers: {
+        "Content-Type": "text/plain"
+      },
+      body: JSON.stringify({
+        itemId: itemId,
+        bid: bid
+      })
+    });
 
-    if (!r.success) {
-      alert(r.message);
+    const result = await res.json();
+
+    if (!result.success) {
+      alert(result.message);
     } else {
+      input.value = "";
       loadAuction();
     }
 
   } catch (e) {
-    console.error("BID FAIL", e);
+    console.error("BID ERROR", e);
   }
 }
 
+// AUTO REFRESH
 setInterval(loadAuction, 4000);
+
+// INITIAL LOAD
 loadAuction();
 </script>
+
+</body>
+</html>
