@@ -289,17 +289,21 @@ function placeCustomBid(id){
 }
 
 /* FETCH ITEMS */
-async function fetchItems(){
-  const res = await fetch(`${SCRIPT_URL}?items=true`);
-  const data = await res.json();
+async function fetchItems() {
 
-  const newHash = JSON.stringify(data);
-  if(newHash === lastDataHash) return;
+  try {
 
-  lastDataHash = newHash;
-  currentItems = data;
+    const res = await fetch(`${SCRIPT_URL}?items=true`, {
+      method: "GET",
+      mode: "no-cors"
+    });
 
-  renderItems(data);
+    // ❌ you cannot read response in no-cors
+    console.log("items fetch sent");
+
+  } catch (err) {
+    console.error("fetch failed", err);
+  }
 }
 
 /* RENDER */
