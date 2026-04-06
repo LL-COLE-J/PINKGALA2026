@@ -30,7 +30,7 @@ button {
 <div id="items"></div>
 
 <script>
-const API = "https://script.google.com/macros/s/AKfycbzFeVWBQvxbh8AvC0HtN3wbcXga31CmbfeYef1opsgkc98omqTSjhaTANB5fw9e3-8N/exec";
+const API = "https://mute-fog-a9af.llcolej8.workers.dev";
 
 let loading = false;
 
@@ -63,7 +63,7 @@ async function loadAuction() {
     });
 
   } catch (err) {
-    console.error(err);
+    console.error("LOAD ERROR:", err);
   }
 
   loading = false;
@@ -76,10 +76,7 @@ async function placeBid(itemId) {
   const input = document.getElementById("bid-" + itemId);
   const bid = Number(input.value);
 
-  if (!bid) {
-    alert("Enter a valid bid");
-    return;
-  }
+  if (!bid) return alert("Enter a valid bid");
 
   try {
     const res = await fetch(API, {
@@ -100,19 +97,17 @@ async function placeBid(itemId) {
     }
 
   } catch (err) {
-    console.error(err);
-    alert("Error placing bid");
+    console.error("BID ERROR:", err);
   }
 }
 
 // =========================
 // AUTO REFRESH
 // =========================
-setInterval(loadAuction, 5000);
+setInterval(loadAuction, 4000);
 
 // INITIAL LOAD
 loadAuction();
-
 </script>
 
 </body>
