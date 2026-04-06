@@ -67,6 +67,7 @@ h1 {
   border-radius: 20px;
   background: #1e2128;
   padding: 18px;
+  position: relative;
 }
 
 /* IMAGE */
@@ -182,6 +183,29 @@ font-weight: 800;
   opacity: 1;
   transform: translate(-50%, -50%) scale(1);
 }
+  .status-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+
+  padding: 8px 14px;
+  border-radius: 10px;
+
+  font-size: 14px;
+  font-weight: 800;
+
+  z-index: 2;
+}
+
+.status-winning {
+  background: #38d96b;
+  color: #000;
+}
+
+.status-losing {
+  background: #ff4d4d;
+  color: #fff;
+}
 
 </style>
 </head>
@@ -257,15 +281,28 @@ function renderItems(items){
   items.forEach(item=>{
 
     // ✅ FILTER (My Bids)
-    if(showMyBidsOnly && String(item.current_winner) !== String(currentBidder)){
-      return;
-    }
+   if(showMyBidsOnly){
+  const isWinning = String(item.current_winner) === String(currentBidder);
+
+  const hasBid = String(item.last_bidder) === String(currentBidder);
+
+  if(!isWinning && !hasBid){
+    return;
+  }
+}
 
     const id = item.item_id;
     const bid = item.current_bid || 0;
+    const isWinning = String(item.current_winner) === String(currentBidder);
+const statusText = isWinning ? "WINNING" : "LOSING";
+const statusClass = isWinning ? "status-winning" : "status-losing";
 
     div.innerHTML += `
       <div class="bid-item">
+
+  <div class="status-badge ${statusClass}">
+    ${statusText}
+  </div>
 
         ${item.image ? `<img class="item-image" src="${item.image}">` : ""}
 
