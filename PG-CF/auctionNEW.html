@@ -238,12 +238,16 @@ let currentItems = [];
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwjcBzFLO9XFpkWhbTLaRdG4DqpAbrvmnEPc9EwwG6eTwfG73UTQGZD2-U10aeUCV-6/exec";
 
 function sendBid(data) {
-  const blob = new Blob(
-    [JSON.stringify(data)],
-    { type: "application/json" }
-  );
 
-  navigator.sendBeacon(SCRIPT_URL, blob);
+  const formData = new URLSearchParams();
+
+  formData.append("bid", "true");
+  formData.append("item_id", data.itemId);
+  formData.append("bidder_id", data.bidderId);
+  formData.append("bidder_name", data.bidderName);
+  formData.append("amount", data.bidAmount);
+
+  navigator.sendBeacon(SCRIPT_URL, formData);
 }
   
 let isInteracting = false;
