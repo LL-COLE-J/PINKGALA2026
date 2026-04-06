@@ -336,53 +336,30 @@ async function sendBatch(batch, attempt = 1) {
 
 await fetch(url);
 
-    console.log("POST SENT (no-cors mode)");
+    console.log("✅ SENT:", idsToSend);
 
-const result = {
-  processed: idsToSend
-};
+    // simulate success (no-cors safe)
+    const processed = idsToSend;
 
-    // 🔥 normalize response too
-    const processed = (result.processed || []).map(String);
-
-    // =========================
-    // 🧠 REDUNDANT SAFETY CHECKS
-    // =========================
-
-    // 1. Exact ID match check
     const failed = idsToSend.filter(id => !processed.includes(id));
-
-    // 2. Count check
-    const countMatch = processed.length === idsToSend.length;
-
-    // 3. Final success flag
-    const success = failed.length === 0 && countMatch;
-
-    // =========================
-    // 🔄 HANDLE RESULTS
-    // =========================
+    const success = failed.length === 0;
 
     if (!success) {
-      console.warn("⚠️ Batch mismatch detected", {
-        sent: idsToSend,
-        processed,
-        failed,
-        countMatch
-      });
-
-      // retry only failed IDs (if we know them)
-      if (failed.length > 0) {
-        checkInQueue.push(...failed.map(id => ({ id })));
-      } else {
-        // fallback: retry entire batch
-        checkInQueue.push(...batch);
-      }
+      checkInQueue.push(...failed.map(id => ({ id })));
     }
-
-    console.log(`✅ Batch success: ${processed.length}/${idsToSend.length}`);
 
   } catch (err) {
 
+    if (attempt <= 3) {
+      console.warn(`🔁 Retry ${attempt}`, idsToSend);
+      await new Promise(r => setTimeout(r, 200 * attempt));
+      return sendBatch(batch, attempt + 1);
+    }
+
+    console.error("❌ FAILED:", idsToSend);
+    checkInQueue.push(...batch);
+  }
+}
     if (attempt <= 3) {
       console.warn(`🔁 Retrying batch (attempt ${attempt})`, idsToSend);
 
