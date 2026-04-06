@@ -18,13 +18,11 @@ body {
   color: #e6e8ec;
 }
 
-/* 🔥 TITLE NOW PINK */
 h1 {
   color: #d63384;
   text-align: center;
 }
 
-/* LAYOUT */
 .app-body { padding: 0 10px 40px 10px; }
 
 #auctionItems {
@@ -33,7 +31,6 @@ h1 {
   gap: 22px;
 }
 
-/* ✅ BUTTONS SIDE BY SIDE */
 .top-actions {
   display: flex;
   gap: 10px;
@@ -47,7 +44,6 @@ h1 {
   border: 1px solid rgba(255,255,255,0.15);
 }
 
-/* CARD */
 .bid-item {
   border-radius: 20px;
   background: linear-gradient(145deg, #1e2128, #14161b);
@@ -62,7 +58,6 @@ h1 {
   border: 2px solid #4cd964;
 }
 
-/* CONTENT */
 .item-title {
   font-size: 40px;
   font-weight: 800;
@@ -75,7 +70,6 @@ h1 {
 
 .bid-meta { font-size: 26px; }
 
-/* BUTTON */
 button {
   border: none;
   border-radius: 14px;
@@ -125,7 +119,6 @@ input {
 
 <div class="app-body">
 
-<!-- ✅ BUTTONS SIDE BY SIDE -->
 <div class="top-actions">
   <button onclick="goHome()">🏠 Home</button>
   <button onclick="toggleMyBids()" id="myBidsBtn">🎯 My Bids</button>
@@ -150,7 +143,10 @@ document.getElementById("userInfo").innerText =
 
 const SCRIPT_URL="https://script.google.com/macros/s/AKfycbwjcBzFLO9XFpkWhbTLaRdG4DqpAbrvmnEPc9EwwG6eTwfG73UTQGZD2-U10aeUCV-6/exec";
 
-/* MY BIDS TOGGLE */
+/* 🔥 HASH GUARD */
+let lastDataHash = "";
+
+/* MY BIDS */
 let showMyBids=false;
 let allItemsCache=[];
 
@@ -201,14 +197,21 @@ function placeCustomBid(id,currentBid){
   sendBid(id,val);
 }
 
-/* FETCH */
+/* FETCH (OPTIMIZED) */
 async function fetchItems(){
   try{
-    const res=await fetch(`${SCRIPT_URL}?items=true`);
-    const data=await res.json();
+    const res = await fetch(`${SCRIPT_URL}?items=true`);
+    const data = await res.json();
 
-    allItemsCache=data;
+    // 🔥 HASH CHECK
+    const newHash = JSON.stringify(data);
+    if (newHash === lastDataHash) return;
+
+    lastDataHash = newHash;
+
+    allItemsCache = data;
     renderItems(data);
+
   }catch(e){
     console.error("fetch fail",e);
   }
@@ -243,7 +246,6 @@ function renderItems(items){
 
         <div class="bid-amount">$${bid}</div>
 
-        <!-- ✅ NOW SHOWING BIDDER NUMBER -->
         <div class="bid-meta">
           Leading: ${item.current_winner || '—'}
         </div>
@@ -268,9 +270,10 @@ function goHome(){
   window.location.href="checkin.html";
 }
 
-/* INIT */
+/* INIT (FAST + WARM) */
 fetchItems();
-setInterval(fetchItems,3000);
+setTimeout(fetchItems,1000);
+setInterval(fetchItems,1000);
 
 </script>
 
