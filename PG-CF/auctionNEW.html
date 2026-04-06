@@ -1,92 +1,357 @@
-<!-- KEEP EVERYTHING ABOVE EXACTLY AS YOU HAD IT -->
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+
+<title>2026 Pink Gala Auction</title>
+
+<style>
+
+/* ===== BASE ===== */
+html { font-size: 120%; }
+
+body {
+  font-family: Arial, sans-serif;
+  background: radial-gradient(circle at top, #1a1c22, #0b0c10);
+  margin: 0;
+  padding: 0;
+  color: #e6e8ec;
+}
+
+/* HEADER */
+h1 {
+  color: #cfd3dc;
+  text-align: center;
+}
+
+/* LAYOUT */
+.app-body { padding: 0 10px 40px 10px; }
+
+#auctionItems {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+/* ===== TOP BUTTONS ===== */
+.top-actions {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.top-actions button {
+  flex: 1;
+  background: linear-gradient(145deg, #2a2d36, #1c1f26);
+  color: #e6e8ec;
+  border: 1px solid rgba(255,255,255,0.15);
+}
+
+/* CARD */
+.bid-item {
+  border-radius: 20px;
+  background: linear-gradient(145deg, #1e2128, #14161b);
+  box-shadow:
+    0 18px 40px rgba(0,0,0,0.7),
+    inset 0 1px 0 rgba(255,255,255,0.04),
+    0 0 0 1px rgba(255,255,255,0.06);
+  overflow: hidden;
+}
+
+.bid-item.winning {
+  border: 2px solid #4cd964;
+}
+
+/* INNER */
+.card-inner {
+  display: flex;
+  flex-direction: column;
+}
+
+.card-content {
+  display: flex;
+  gap: 16px;
+  padding: 18px;
+}
+
+/* IMAGE */
+.item-image {
+  width: 160px;
+  height: 160px;
+  object-fit: cover;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+/* TEXT */
+.card-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* TITLE */
+.item-title {
+  font-size: 40px;
+  font-weight: 800;
+}
+
+/* BID BOX */
+.bid-box {
+  background: linear-gradient(145deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+  padding: 16px;
+  border-radius: 16px;
+  margin: 12px 0;
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+/* AMOUNT */
+.bid-amount {
+  font-size: 100px;
+  font-weight: 900;
+}
+
+/* META */
+.bid-meta { font-size: 26px; }
+.bid-next { font-size: 24px; color: #9aa3b2; }
+
+/* BUTTON */
+button {
+  border: none;
+  border-radius: 14px;
+  padding: 22px;
+  font-size: 30px;
+  font-weight: bold;
+  width: 100%;
+  cursor: pointer;
+}
+
+/* BID BUTTON */
+.bid-btn {
+  background: linear-gradient(135deg, #5efc82, #38d96b);
+  color: #000;
+}
+
+/* ===== CUSTOM BID (FIXED VISIBILITY) ===== */
+.custom-bid-box {
+  margin-top: 14px;
+  padding: 16px;
+  border-radius: 16px;
+
+  background: linear-gradient(145deg, #2a2d36, #1c1f26);
+  border: 1px solid rgba(255,255,255,0.15);
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.05),
+    0 4px 10px rgba(0,0,0,0.4);
+}
+
+.custom-label {
+  font-size: 20px;
+  font-weight: 700;
+  color: #e6e8ec;
+  margin-bottom: 10px;
+}
+
+/* INPUT FIX */
+input {
+  padding: 18px;
+  font-size: 26px;
+  width: 100%;
+  margin-bottom: 10px;
+
+  background: #ffffff;
+  color: #000;
+
+  border-radius: 12px;
+  border: 2px solid #cfd3dc;
+
+  font-weight: 800;
+}
+
+/* CUSTOM BUTTON */
+.custom-bid-box button {
+  background: linear-gradient(135deg, #cfd3dc, #9aa3b2);
+  color: #000;
+}
+
+/* MOBILE */
+@media (max-width: 700px) {
+  .card-content { flex-direction: column; }
+  .item-image { width: 100%; height: 220px; }
+  .bid-amount { font-size: 70px; }
+}
+
+</style>
+</head>
+
+<body>
+
+<h1>2026 Pink Gala Auction</h1>
+
+<div class="app-body">
+
+<div class="top-actions">
+  <button onclick="goHome()">🏠 Home</button>
+  <button onclick="toggleMyBids()" id="myBidsBtn">🎯 My Bids</button>
+</div>
+
+<div style="text-align:center; margin-bottom:20px;">
+  <strong id="userInfo"></strong>
+</div>
+
+<div id="auctionItems">
+  <div class="loading-state">⏳ Loading auction items...</div>
+</div>
 
 <script>
 
-const params=new URLSearchParams(window.location.search);
-const currentBidder=params.get("bidder")||"";
-const currentGuest=params.get("name")||"";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwjcBzFLO9XFpkWhbTLaRdG4DqpAbrvmnEPc9EwwG6eTwfG73UTQGZD2-U10aeUCV-6/exec";
 
-const SCRIPT_URL="https://script.google.com/macros/s/AKfycbwjcBzFLO9XFpkWhbTLaRdG4DqpAbrvmnEPc9EwwG6eTwfG73UTQGZD2-U10aeUCV-6/exec";
+let currentItems = [];
+let showMyBidsOnly = false;
 
-/* SEND BID */
-function sendBid(itemId,amount){
+const params = new URLSearchParams(window.location.search);
 
-  fetch(SCRIPT_URL,{
-    method:"POST",
-    mode:"no-cors",
-    body:new URLSearchParams({
-      bid:"true",
-      item_id:itemId,
-      bidder_id:currentBidder,
-      bidder_name:currentGuest,
-      amount:amount
-    })
-  });
+const user = {
+  name: decodeURIComponent(params.get("name") || ""),
+  bidderId: params.get("bidder"),
+  table: params.get("table")
+};
 
+let currentGuest = user.name;
+let currentBidder = user.bidderId;
+
+function goHome() {
+  window.location.href = "/index.html" + window.location.search;
 }
 
-/* QUICK */
-function placeQuickBid(id,amt,btn){
-  btn.disabled=true;
-
-  sendBid(id,amt);
-
-  setTimeout(()=>btn.disabled=false,500);
-}
-
-/* CUSTOM */
-function placeCustomBid(id){
-  const val=Number(document.getElementById(`input-${id}`).value);
-  if(!val)return alert("Enter valid bid");
-  sendBid(id,val);
-}
-
-/* FETCH ITEMS */
-async function fetchItems(){
-  try{
-    const res=await fetch(`${SCRIPT_URL}?items=true`);
-    const data=await res.json();
-    renderItems(data);
-  }catch(e){
-    console.error("fetch fail",e);
-  }
+function toggleMyBids() {
+  showMyBidsOnly = !showMyBidsOnly;
+  renderItems(currentItems);
 }
 
 /* RENDER */
-function renderItems(items){
-  const div=document.getElementById("auctionItems");
-  div.innerHTML="";
+function renderItems(items) {
 
-  items.forEach(item=>{
-    const id=item.item_id;
-    const bid=item.current_bid||0;
+  const div = document.getElementById("auctionItems");
+  div.innerHTML = "";
 
-    div.innerHTML+=`
-      <div class="bid-item">
-        <div class="item-title">${item.item_name}</div>
+  items.forEach(item => {
+
+    const id = item.item_id;
+    const name = item.name;
+    const bid = item.current_bid || item.starting_bid || 0;
+    const winner = item.current_winner || "-";
+    const image = item.image || "";
+    const next = bid + 50;
+
+    const isWinning = String(winner) === String(currentBidder);
+
+    const card = document.createElement("div");
+    card.className = "bid-item";
+    if (isWinning) card.classList.add("winning");
+
+    card.innerHTML = `
+<div class="card-inner">
+  <div class="card-content">
+
+    ${image ? `<img class="item-image" src="${image}">` : ""}
+
+    <div class="card-text">
+
+      <div class="item-title">${name}</div>
+
+      <div class="bid-box">
         <div class="bid-amount">$${bid}</div>
+        <div class="bid-meta">Leader: ${winner}</div>
+        <div class="bid-next">Next: $${next}</div>
+      </div>
 
-        <button class="bid-btn"
-          onclick="placeQuickBid('${id}',${bid+50},this)">
-          BID $${bid+50}
+      <button class="bid-btn"
+        onclick="placeQuickBid('${id}', ${next}, this)">
+        Bid $${next}
+      </button>
+
+      <div class="custom-bid-box">
+
+        <div class="custom-label">Enter Custom Bid</div>
+
+        <input id="input-${id}" type="text">
+
+        <button onclick="placeCustomBid('${id}', this)">
+          Submit Bid
         </button>
 
-        <div class="custom-bid-box">
-          <input id="input-${id}" placeholder="Custom Bid">
-          <button onclick="placeCustomBid('${id}')">Submit</button>
-        </div>
       </div>
+
+      <div id="status-${id}"></div>
+
+    </div>
+  </div>
+</div>
     `;
+
+    div.appendChild(card);
   });
 }
 
-/* NAV */
-function goHome(){
-  window.location.href="checkin.html";
+/* FETCH */
+async function fetchItems(){
+  const res = await fetch(`${SCRIPT_URL}?items=true`);
+  const data = await res.json();
+  currentItems = data;
+  renderItems(data);
+}
+
+/* BIDS */
+async function placeQuickBid(id, amt, btn){
+  btn.disabled = true;
+
+  await fetch(SCRIPT_URL, {
+    method: "POST",
+    body: new URLSearchParams({
+      bid: true,
+      item_id: id,
+      bidder_id: currentBidder,
+      bidder_name: currentGuest,
+      amount: amt
+    })
+  });
+
+  btn.disabled = false;
+  fetchItems();
+}
+
+async function placeCustomBid(id, btn){
+  const val = document.getElementById(`input-${id}`).value;
+
+  await fetch(SCRIPT_URL, {
+    method: "POST",
+    body: new URLSearchParams({
+      bid: true,
+      item_id: id,
+      bidder_id: currentBidder,
+      bidder_name: currentGuest,
+      amount: val
+    })
+  });
+
+  fetchItems();
 }
 
 /* INIT */
-fetchItems();
-setInterval(fetchItems,3000);
+document.addEventListener("DOMContentLoaded", () => {
+  fetchItems();
+
+  document.getElementById("userInfo").innerText =
+    `${user.name} | Bidder #${user.bidderId}`;
+
+  setInterval(fetchItems, 3000);
+});
 
 </script>
+
+</div>
+</body>
+</html>
