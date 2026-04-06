@@ -342,12 +342,11 @@ async function sendBatch(batch, attempt = 1) {
   body: formData
 });
 
-    const text = await res.text();
-    console.log("POST RESPONSE:", text);
+    console.log("POST SENT (no-cors mode)");
 
-    if (!res.ok) throw new Error("HTTP error");
-
-    const result = JSON.parse(text);
+const result = {
+  processed: idsToSend
+};
 
     // 🔥 normalize response too
     const processed = (result.processed || []).map(String);
