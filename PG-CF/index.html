@@ -12,7 +12,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 
 <style>
-/* 🔥 YOUR CSS UNCHANGED */
 body{
   font-family:'Poppins',sans-serif;
   margin:0;
@@ -21,21 +20,17 @@ body{
   background:linear-gradient(135deg,#fff0f6,#ffe3ec);
 }
 
-  .matchButton {
+.matchButton {
   background: linear-gradient(135deg, #d63384, #ff4da6);
   color: white;
-
   margin: 10px auto;
   padding: 18px;
   border-radius: 12px;
   max-width: 420px;
-
   font-size: 22px;
   font-weight: 600;
-
   box-shadow: 0 10px 25px rgba(214,51,132,0.35);
   border: none;
-
   cursor: pointer;
   transition: all 0.15s ease;
 }
@@ -124,7 +119,8 @@ button{
 
 <script>
 
-const API = https://script.google.com/macros/s/AKfycbzFeVWBQvxbh8AvC0HtN3wbcXga31CmbfeYef1opsgkc98omqTSjhaTANB5fw9e3-8N/exec
+// ✅ YOUR LIVE WEB APP URL
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzFeVWBQvxbh8AvC0HtN3wbcXga31CmbfeYef1opsgkc98omqTSjhaTANB5fw9e3-8N/exec";
 
 let guestList = [];
 const guestMap = {};
@@ -138,6 +134,7 @@ function loadGuests() {
     bidder:g.bidder,
     table:g.table
   }));
+
   guestList.forEach(g=>guestMap[g.id]=g);
 
   document.getElementById("loading").style.display="none";
@@ -150,9 +147,11 @@ function handleSearch(e){
   const container=document.getElementById("guestList");
   container.innerHTML="";
 
-  if(!term)return;
+  if(!term) return;
 
-  const results=guestList.filter(g=>g.name.toLowerCase().includes(term)).slice(0,10);
+  const results=guestList
+    .filter(g=>g.name.toLowerCase().includes(term))
+    .slice(0,10);
 
   results.forEach(g=>{
     const div=document.createElement("div");
@@ -165,16 +164,22 @@ function handleSearch(e){
   document.getElementById("status").innerText=`${results.length} match(es)`;
 }
 
-/* CHECK-IN */
+/* CHECK-IN (FIXED + BACKEND MATCHED) */
 function handleCheckIn(id){
 
-  if(checkedInSet.has(id))return;
+  if(checkedInSet.has(id)) return;
   checkedInSet.add(id);
 
-  const guest=guestMap[id];
+  const guest = guestMap[id];
 
-  // 🔥 WORKING WRITE
-  fetch(`${SCRIPT_URL}?ids=${encodeURIComponent(JSON.stringify([id]))}`);
+  // ✅ CORRECT BACKEND CALL
+  navigator.sendBeacon(
+    SCRIPT_URL + "?action=checkin",
+    new URLSearchParams({
+      ids: JSON.stringify([id]),
+      names: JSON.stringify([guest.name])
+    })
+  );
 
   document.getElementById("guestList").innerHTML=`
     <div class="tableCard">
@@ -195,6 +200,7 @@ function handleCheckIn(id){
   confetti({particleCount:60,spread:70,origin:{y:0.6}});
 }
 
+/* NAVIGATE TO AUCTION */
 function enterAuction(name,bidder,table){
   window.location.href=`auctionNEW.html?name=${encodeURIComponent(name)}&bidder=${bidder}&table=${table}`;
 }
