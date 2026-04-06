@@ -197,7 +197,7 @@ function showBidPopup(){
 
 /* RENDER */
 function renderItems(items){
-  <div class="custom-label">Place Custom Bid</div>
+  
   const div = document.getElementById("auctionItems");
   div.innerHTML = "";
 
@@ -220,6 +220,7 @@ function renderItems(items){
         </button>
 
         <div class="custom-bid-box" onclick="focusBidInput('${id}')">
+        <div class="custom-label">Place Custom Bid</div>
 
           <input
             id="input-${id}"
