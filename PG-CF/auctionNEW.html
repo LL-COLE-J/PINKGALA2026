@@ -146,6 +146,12 @@ const SCRIPT_URL="https://script.google.com/macros/s/AKfycbwjcBzFLO9XFpkWhbTLaRd
 /* 🔥 HASH GUARD */
 let lastDataHash = "";
 
+/* 🔥 NEW: TRACK USER BIDS */
+let myBids = new Set();
+
+/* 🔥 NEW: TRACK WIN STATE */
+let lastWinningState = {};
+
 /* MY BIDS */
 let showMyBids=false;
 let allItemsCache=[];
@@ -183,7 +189,11 @@ function sendBid(itemId,amount){
 /* QUICK */
 function placeQuickBid(id,amt,btn){
   btn.disabled=true;
+
+  myBids.add(String(id)); // 🔥 TRACK BID
+
   sendBid(id,amt);
+
   setTimeout(()=>btn.disabled=false,800);
 }
 
@@ -194,24 +204,24 @@ function placeCustomBid(id,currentBid){
   if (!val || val <= 0) return alert("Enter valid bid");
   if (val <= currentBid) return alert("Bid must be higher");
 
+  myBids.add(String(id)); // 🔥 TRACK BID
+
   sendBid(id,val);
 }
 
-/* FETCH (OPTIMIZED) */
+/* FETCH */
 async function fetchItems(){
   try{
-    const res = await fetch(`${SCRIPT_URL}?items=true`);
-    const data = await res.json();
+    const res=await fetch(`${SCRIPT_URL}?items=true`);
+    const data=await res.json();
 
-    // 🔥 HASH CHECK
     const newHash = JSON.stringify(data);
     if (newHash === lastDataHash) return;
 
     lastDataHash = newHash;
 
-    allItemsCache = data;
+    allItemsCache=data;
     renderItems(data);
-
   }catch(e){
     console.error("fetch fail",e);
   }
@@ -224,7 +234,7 @@ function renderItems(items){
   div.innerHTML="";
 
   if(showMyBids){
-    items=items.filter(item=>item.current_winner==currentBidder);
+    items = items.filter(item => myBids.has(String(item.item_id)));
   }
 
   if(items.length===0){
@@ -239,9 +249,18 @@ function renderItems(items){
     const increment=item.bid_increment||50;
 
     const isWinning=item.current_winner==currentBidder;
+    const isOutbid=myBids.has(String(id)) && !isWinning;
+
+    // 🔔 OUTBID ALERT
+    const prev = lastWinningState[id];
+    if (prev === true && !isWinning && myBids.has(String(id))) {
+      alert(`You were outbid on ${item.item_name}`);
+    }
+    lastWinningState[id] = isWinning;
 
     div.innerHTML+=`
-      <div class="bid-item ${isWinning ? 'winning' : ''}">
+      <div class="bid-item ${isWinning ? 'winning' : ''}" 
+           style="${isOutbid ? 'border:2px solid #ff4d4d;' : ''}">
         <div class="item-title">${item.item_name}</div>
 
         <div class="bid-amount">$${bid}</div>
@@ -249,6 +268,9 @@ function renderItems(items){
         <div class="bid-meta">
           Leading: ${item.current_winner || '—'}
         </div>
+
+        ${isWinning ? '<div style="color:#4cd964;font-weight:bold;">✔ You are winning</div>' : ''}
+        ${isOutbid ? '<div style="color:#ff4d4d;font-weight:bold;">❌ You have been outbid</div>' : ''}
 
         <button class="bid-btn"
           ${isWinning ? 'disabled' : ''}
@@ -270,9 +292,8 @@ function goHome(){
   window.location.href="checkin.html";
 }
 
-/* INIT (FAST + WARM) */
+/* INIT */
 fetchItems();
-setTimeout(fetchItems,1000);
 setInterval(fetchItems,1000);
 
 </script>
