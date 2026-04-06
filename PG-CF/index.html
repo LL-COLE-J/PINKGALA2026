@@ -332,15 +332,9 @@ async function sendBatch(batch, attempt = 1) {
   // 🔥 normalize to strings (critical fix)
   const idsToSend = batch.map(b => String(b.id));
 
-  const formData = new URLSearchParams();
-  formData.append("ids", JSON.stringify(idsToSend));
+  const url = `${SCRIPT_URL}?ids=${encodeURIComponent(JSON.stringify(idsToSend))}`;
 
-  try {
-    const res = await fetch(SCRIPT_URL, {
-  method: "POST",
-  mode: "no-cors",
-  body: formData
-});
+await fetch(url);
 
     console.log("POST SENT (no-cors mode)");
 
