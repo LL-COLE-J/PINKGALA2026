@@ -1,181 +1,293 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Live Auction</title>
-
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+<meta charset="utf-8">
+<title>2026 Pink Gala Auction</title>
 
 <style>
 body {
-  font-family: 'Poppins', sans-serif;
-  background: linear-gradient(135deg, #fff0f4, #fce4ec);
-  margin: 0;
-  padding: 16px;
+  font-family: Arial, sans-serif;
+  background: linear-gradient(to bottom right, #ffe6f0, #fff);
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px;
 }
 
-h2 {
+h1 {
+  color: #d63384;
   text-align: center;
-  margin-bottom: 15px;
-  font-weight: 600;
 }
 
-#items {
+#auctionItems {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 20px;
 }
 
-.item {
-  background: white;
-  border-radius: 14px;
-  padding: 14px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+.bid-item {
+  max-width: 600px;
+  margin: 0 auto;
+  text-align: center;
+  border-radius: 12px;
+  padding: 20px;
+  background: linear-gradient(135deg, #d63384, #ff6fa3);
+  color: white;
 }
 
-.item h3 {
-  margin: 0 0 6px;
-  font-size: 16px;
-}
-
-.bid {
-  font-size: 18px;
-  font-weight: 600;
-  margin-bottom: 8px;
-}
-
-.row {
-  display: flex;
-  gap: 8px;
-}
-
-input {
-  flex: 1;
-  padding: 10px;
-  border-radius: 10px;
-  border: 1px solid #ddd;
-  font-size: 14px;
+.bid-item.winning {
+  background: #e8f7ee;
+  color: black;
+  border: 2px solid #28a745;
 }
 
 button {
-  padding: 10px 14px;
-  border: none;
-  border-radius: 10px;
-  background: linear-gradient(135deg, #ff5a7a, #ff8fa3);
+  background: #d63384;
   color: white;
-  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 12px;
   cursor: pointer;
 }
 
-button:active {
-  transform: scale(0.97);
-}
-
-.status {
-  font-size: 12px;
-  margin-top: 5px;
-  color: #999;
+input {
+  padding: 6px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
 }
 </style>
 </head>
 
 <body>
 
-<h2>Live Auction</h2>
-<div id="items"></div>
+<h1>2026 Pink Gala Auction</h1>
+
+<div style="text-align:center; margin-bottom:15px;">
+  <button onclick="goHome()">🏠 Home</button>
+</div>
+
+<button onclick="toggleMyBids()">🎯 My Bids</button>
+
+<div style="text-align:center; margin-bottom:20px;">
+  <strong id="userInfo"></strong>
+</div>
+
+<div id="auctionItems"></div>
 
 <script>
-const API = "https://mute-fog-a9af.llcolej8.workers.dev";
 
-let loading = false;
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwjcBzFLO9XFpkWhbTLaRdG4DqpAbrvmnEPc9EwwG6eTwfG73UTQGZD2-U10aeUCV-6/exec";
 
-async function loadAuction() {
-  if (loading) return;
-  loading = true;
+let showMyBidsOnly = false;
+let currentItems = [];
+let previousWinners = {};
+let outbidItems = new Set();
 
-  try {
-    const res = await fetch(API + "?auction=true");
-    const items = await res.json();
+// ===== USER =====
+const params = new URLSearchParams(window.location.search);
 
-    const container = document.getElementById("items");
-    if (!container) return;
+const user = {
+  name: decodeURIComponent(params.get("name") || ""),
+  bidderId: params.get("bidder"),
+  table: params.get("table")
+};
 
-    container.innerHTML = "";
+let currentGuest = user.name;
 
-    items.forEach(item => {
-      const div = document.createElement("div");
-      div.className = "item";
+// ===== RENDER =====
+function renderItems(items) {
 
-      div.innerHTML = `
-        <h3>${item.name}</h3>
-        <div class="bid">$${item.currentBid}</div>
+  const div = document.getElementById("auctionItems");
+  if (!div) return;
 
-        <div class="row">
-          <input type="number" id="bid-${item.itemId}" placeholder="Bid">
-          <button onclick="placeBid('${item.itemId}')">Bid</button>
-        </div>
+  div.innerHTML = "";
 
-        <div class="status" id="status-${item.itemId}"></div>
-      `;
+  let filteredItems = items
+    .filter(i => i && i.name)
+    .filter(i => (i.status || "").toLowerCase() !== "closed");
 
-      container.appendChild(div);
-    });
-
-  } catch (err) {
-    console.error("LOAD ERROR:", err);
+  if (showMyBidsOnly) {
+    filteredItems = filteredItems.filter(i =>
+      String(i.current_winner) === String(user.bidderId)
+    );
   }
 
-  loading = false;
+  filteredItems.forEach(item => {
+
+    const id = item.item_id;
+    const name = item.name;
+
+    const currentBid = item.current_bid
+      ? Number(item.current_bid)
+      : Number(item.starting_bid) || 0;
+
+    const winner = item.current_winner;
+    const previousWinner = previousWinners[id];
+
+    // OUTBID DETECTION
+    if (
+      previousWinner !== undefined &&
+      String(previousWinner) === String(user.bidderId) &&
+      String(winner) !== String(user.bidderId) &&
+      winner !== null &&
+      winner !== ""
+    ) {
+      if (!outbidItems.has(id)) {
+        alert(`⚠️ You’ve been outbid on ${name}`);
+        outbidItems.add(id);
+      }
+    }
+
+    const isWinning = String(winner) === String(user.bidderId);
+
+    if (isWinning) {
+      outbidItems.delete(id);
+    }
+
+    const card = document.createElement("div");
+    card.className = "bid-item";
+    if (isWinning) card.classList.add("winning");
+
+    card.innerHTML = `
+      ${isWinning ? `<div>🏆 YOU ARE WINNING</div>` : ""}
+      ${outbidItems.has(id) ? `<div style="color:red;">⚠️ OUTBID</div>` : ""}
+
+      <div style="font-weight:bold; margin:10px 0;">${name}</div>
+
+      <div>
+        ${item.current_bid ? `Current: $${currentBid}` : `Starting Bid: $${currentBid}`}<br>
+        Leader: ${winner ? `#${winner}` : "—"}
+      </div>
+
+      <div style="margin-top:10px;">
+        <button onclick="placeQuickBid('${id}', ${currentBid + 50}, this)">
+          Bid $${currentBid + 50}
+        </button>
+      </div>
+
+      <div style="margin-top:10px;">
+        <input id="input-${id}" type="number" placeholder="Min $${currentBid + 50}">
+        <button onclick="placeCustomBid('${id}', this)">Place Bid</button>
+      </div>
+
+      <div id="status-${id}" style="margin-top:8px;"></div>
+    `;
+
+    previousWinners[id] = winner;
+    div.appendChild(card);
+  });
 }
 
-async function placeBid(itemId) {
-  const input = document.getElementById("bid-" + itemId);
-  const status = document.getElementById("status-" + itemId);
+// ===== FETCH =====
+async function fetchItems(){
 
-  const bid = Number(input.value);
-
-  if (!bid) {
-    status.textContent = "Enter bid";
-    return;
-  }
-
-  status.textContent = "Submitting...";
-
-  try {
-    const res = await fetch(API, {
-      method: "POST",
-      headers: { "Content-Type": "text/plain" },
-      body: JSON.stringify({ itemId, bid })
-    });
-
+  try{
+    const res = await fetch(`${SCRIPT_URL}?items=true`);
     const text = await res.text();
 
-    let result;
-    try {
-      result = JSON.parse(text);
-    } catch {
-      status.textContent = "Server issue";
+    let data;
+    try{
+      data = JSON.parse(text);
+    }catch{
+      console.error("BAD ITEMS RESPONSE:", text);
       return;
     }
 
-    if (result.success) {
-      status.textContent = "✔ Bid placed";
-      input.value = "";
-      loadAuction();
-    } else {
-      status.textContent = result.message;
-    }
+    currentItems = data;
+    renderItems(currentItems);
 
-  } catch (err) {
-    console.error(err);
-    status.textContent = "Error";
+  }catch(err){
+    console.error("FETCH ERROR", err);
   }
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  loadAuction();
-  setInterval(loadAuction, 4000);
-});
+// ===== QUICK BID =====
+async function placeQuickBid(id, amt, btn){
+
+  if (btn.disabled) return;
+  btn.disabled = true;
+
+  const status = document.getElementById(`status-${id}`);
+  status.innerText = "Submitting...";
+
+  const item = currentItems.find(i => i.item_id == id);
+  if (item) {
+    item.current_bid = amt;
+    item.current_winner = user.bidderId;
+  }
+
+  renderItems(currentItems);
+
+  try {
+
+    const res = await fetch(SCRIPT_URL, {
+      method: "POST",
+      body: new URLSearchParams({
+        bid: true,
+        item_id: id,
+        bidder_id: user.bidderId,
+        bidder_name: currentGuest,
+        amount: amt
+      })
+    });
+
+    const text = await res.text();
+    console.log("BID RESPONSE:", text);
+
+    status.innerHTML = "🏆 Winning";
+
+  } catch {
+    status.innerText = "Error";
+  }
+
+  btn.disabled = false;
+  fetchItems();
+}
+
+// ===== CUSTOM BID =====
+async function placeCustomBid(id, btn){
+
+  if (btn.disabled) return;
+  btn.disabled = true;
+
+  const input = document.getElementById(`input-${id}`);
+  const val = Number(input.value);
+
+  const item = currentItems.find(i => i.item_id == id);
+  const current = item.current_bid
+    ? Number(item.current_bid)
+    : Number(item.starting_bid);
+
+  if (val <= current) {
+    btn.disabled = false;
+    return alert(`Bid must be greater than $${current}`);
+  }
+
+  await placeQuickBid(id, val, btn);
+  input.value = "";
+}
+
+// ===== UI =====
+function toggleMyBids(){
+  showMyBidsOnly = !showMyBidsOnly;
+  renderItems(currentItems);
+}
+
+function goHome(){
+  const url = new URL(window.location.href);
+  url.pathname = url.pathname.replace(/\/[^\/]*$/, "/index.html");
+  window.location.href = url.href;
+}
+
+// ===== INIT =====
+window.onload = () => {
+
+  document.getElementById("userInfo").innerText =
+    `${user.name} | Bidder #${user.bidderId} | Table ${user.table}`;
+
+  fetchItems();
+  setInterval(fetchItems, 3000);
+};
+
 </script>
 
 </body>
