@@ -359,8 +359,10 @@ renderItems(data);
 }
 
 /* QUICK BID */
-async function placeCustomBid(id){
-  const val = document.getElementById(`input-${id}`).value;
+/* QUICK BID */
+async function placeQuickBid(id, amt, btn){
+
+  btn.disabled = true;
 
   await fetch(SCRIPT_URL,{
     method:"POST",
@@ -369,9 +371,11 @@ async function placeCustomBid(id){
       item_id:id,
       bidder_id: currentBidder,
       bidder_name: currentGuest,
-      amount:val
+      amount:amt
     })
   });
+
+  btn.disabled = false;
 
   showBidPopup();
   fetchItems();
@@ -389,6 +393,7 @@ async function placeCustomBid(id){
   bidder_name: currentGuest,
   amount:val
 })
+  });
 
   showBidPopup();
   fetchItems();
