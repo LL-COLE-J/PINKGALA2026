@@ -226,159 +226,37 @@ font-weight: 800;
 
 
 <script>
- const params = new URLSearchParams(window.location.search);
-const currentBidder = params.get("bidder") || "0";
-const currentGuest = params.get("name") || "Guest";
+const params = new URLSearchParams(window.location.search);
+const currentBidder = params.get("bidder") || "";
+const currentGuest = params.get("name") || "";
 
+const SCRIPT_URL = "https://script.google.com/macros/s/YOUR_DEPLOYMENT_URL/exec";
 
-  let showMyBidsOnly = false;
 let currentItems = [];
-    let lastDataHash = "";
+let lastDataHash = "";
 
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwjcBzFLO9XFpkWhbTLaRdG4DqpAbrvmnEPc9EwwG6eTwfG73UTQGZD2-U10aeUCV-6/exec";
+/* SEND BID (fetch + no-cors — stable with GAS) */
+function sendBid(data){
 
-function sendBid(data) {
-console.log("SENDING BID:", data);
-  const formData = new FormData();
-
-  formData.append("bid", "true");
-  formData.append("item_id", data.itemId);
-  formData.append("bidder_id", data.bidderId);
-  formData.append("bidder_name", data.bidderName);
-  formData.append("amount", data.bidAmount);
-
-  navigator.sendBeacon(SCRIPT_URL, formData);
-}
-  
-let isInteracting = false;
-let interactionTimeout;
-
-/* 20s INTERACTION */
-function startInteraction(){
-  isInteracting = true;
-  clearTimeout(interactionTimeout);
-  interactionTimeout = setTimeout(()=> isInteracting=false, 20000);
-}
-
-function focusBidInput(id){
-  const el = document.getElementById(`input-${id}`);
-  if(el && document.activeElement !== el){
-    el.focus();
-    startInteraction();
-  }
-}
-
-function handleBidEnter(e, id){
-  if(e.key === "Enter"){
-    placeCustomBid(id);
-  }
-}
-
-/* POPUP */
-function showBidPopup(){
-  const popup = document.getElementById("bidPopup");
-  popup.classList.add("show");
-  setTimeout(()=> popup.classList.remove("show"), 1500);
-}
-
-/* RENDER */
-function renderItems(items){
-
-  const div = document.getElementById("auctionItems");
-
-  if(!items || items.length === 0){
-    div.innerHTML = "Loading...";
-    return;
-  }
-
-  div.innerHTML = "";
-
-  items.forEach(item=>{
-
-    // ✅ FILTER (My Bids)
-   if(showMyBidsOnly){
-  const isWinning = String(item.current_winner) === String(currentBidder);
-
-  const hasBid = String(item.last_bidder) === String(currentBidder);
-
-  if(!isWinning && !hasBid){
-    return;
-  }
-}
-
-    const id = item.item_id;
-    const bid = item.current_bid || 0;
-    const isWinning = String(item.current_winner) === String(currentBidder);
-const statusText = isWinning ? "WINNING" : "LOSING";
-const statusClass = isWinning ? "status-winning" : "status-losing";
-
-    div.innerHTML += `
-      <div class="bid-item">
-
-  <div class="status-badge ${statusClass}">
-    ${statusText}
-  </div>
-
-        ${item.image ? `<img class="item-image" src="${item.image}">` : ""}
-
-   <div class="item-title">${item.item_name || item.name}</div>
-
-        <div class="bid-amount">$${bid}</div>
-
-        <button class="bid-btn"
-          onclick="placeQuickBid('${id}', ${bid+50}, this)">
-          Bid $${bid+50}
-        </button>
-
-        <div class="custom-bid-box">
-
-          <div class="custom-input-wrap">
-
-            <input
-              id="input-${id}"
-              inputmode="numeric"
-              placeholder="Place Custom Bid"
-              onfocus="startInteraction()"
-              onclick="event.stopPropagation()"
-              onkeydown="handleBidEnter(event, '${id}')"
-            >
-
-          </div>
-
-          <button onclick="placeCustomBid('${id}')">
-            Submit Bid
-          </button>
-
-        </div>
-
-      </div>
-    `;
+  fetch(SCRIPT_URL, {
+    method: "POST",
+    mode: "no-cors",
+    body: new URLSearchParams({
+      bid: "true",
+      item_id: data.itemId,
+      bidder_id: data.bidderId,
+      bidder_name: data.bidderName,
+      amount: data.bidAmount
+    })
   });
-}
-/* FETCH */
-async function fetchItems(){
-  const res = await fetch(`${SCRIPT_URL}?items=true`);
-  const data = await res.json();
 
-  const newHash = JSON.stringify(data);
-
-  if(newHash === lastDataHash){
-    return;
-  }
-
-  lastDataHash = newHash;
-  currentItems = data;
-renderItems(data);
 }
 
 /* QUICK BID */
-
 function placeQuickBid(id, amt, btn){
-
   btn.disabled = true;
 
   sendBid({
-    action: "placeBid",
     itemId: id,
     bidderId: currentBidder,
     bidderName: currentGuest,
@@ -386,15 +264,11 @@ function placeQuickBid(id, amt, btn){
   });
 
   btn.disabled = false;
-
-  showBidPopup();
   fetchItems();
 }
 
-  
-  /* CUSTOM BID */
+/* CUSTOM BID */
 function placeCustomBid(id){
-
   const input = document.getElementById(`input-${id}`);
   const val = Number(input.value);
 
@@ -404,7 +278,6 @@ function placeCustomBid(id){
   }
 
   sendBid({
-    action: "placeBid",
     itemId: id,
     bidderId: currentBidder,
     bidderName: currentGuest,
@@ -412,22 +285,51 @@ function placeCustomBid(id){
   });
 
   input.value = "";
-
-  showBidPopup();
   fetchItems();
 }
 
-/* NAV */
-function goHome(){ window.location.href="/"; }
-function toggleMyBids(){
-  showMyBidsOnly = !showMyBidsOnly;
-  renderItems(currentItems);
+/* FETCH ITEMS */
+async function fetchItems(){
+  const res = await fetch(`${SCRIPT_URL}?items=true`);
+  const data = await res.json();
+
+  const newHash = JSON.stringify(data);
+  if(newHash === lastDataHash) return;
+
+  lastDataHash = newHash;
+  currentItems = data;
+
+  renderItems(data);
+}
+
+/* RENDER */
+function renderItems(items){
+  const div = document.getElementById("auctionItems");
+  div.innerHTML = "";
+
+  items.forEach(item=>{
+    const id = item.item_id;
+    const bid = item.current_bid || 0;
+
+    div.innerHTML += `
+      <div class="bid-item">
+        <div class="item-title">${item.item_name}</div>
+        <div class="bid-amount">$${bid}</div>
+
+        <button onclick="placeQuickBid('${id}', ${bid+50}, this)">
+          Bid $${bid+50}
+        </button>
+
+        <input id="input-${id}" placeholder="Custom Bid">
+        <button onclick="placeCustomBid('${id}')">Submit</button>
+      </div>
+    `;
+  });
 }
 
 /* INIT */
 fetchItems();
-setInterval(()=>{ if(!isInteracting) fetchItems(); },2000);
-
+setInterval(fetchItems, 3000);
 </script>
 
 </body>
