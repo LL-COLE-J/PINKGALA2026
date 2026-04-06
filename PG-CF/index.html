@@ -329,48 +329,29 @@ async function processQueue() {
 
 async function sendBatch(batch, attempt = 1) {
 
-  // 🔥 normalize to strings (critical fix)
   const idsToSend = batch.map(b => String(b.id));
 
-  const url = `${SCRIPT_URL}?ids=${encodeURIComponent(JSON.stringify(idsToSend))}`;
+  try {
 
-await fetch(url);
+    const url = `${SCRIPT_URL}?ids=${encodeURIComponent(JSON.stringify(idsToSend))}`;
+
+    await fetch(url);
 
     console.log("✅ SENT:", idsToSend);
 
-    // simulate success (no-cors safe)
+    // simulate success
     const processed = idsToSend;
 
     const failed = idsToSend.filter(id => !processed.includes(id));
-    const success = failed.length === 0;
 
-    if (!success) {
+    if (failed.length > 0) {
       checkInQueue.push(...failed.map(id => ({ id })));
     }
 
   } catch (err) {
 
-    if (attempt <= 3) {
-      console.warn(`🔁 Retry ${attempt}`, idsToSend);
-      await new Promise(r => setTimeout(r, 200 * attempt));
-      return sendBatch(batch, attempt + 1);
-    }
-
+    
     console.error("❌ FAILED:", idsToSend);
-    checkInQueue.push(...batch);
-  }
-}
-    if (attempt <= 3) {
-      console.warn(`🔁 Retrying batch (attempt ${attempt})`, idsToSend);
-
-      await new Promise(r => setTimeout(r, 200 * attempt));
-
-      return sendBatch(batch, attempt + 1);
-    }
-
-    console.error("❌ PERMANENT FAILURE:", idsToSend);
-
-    // fallback retry
     checkInQueue.push(...batch);
   }
 }
