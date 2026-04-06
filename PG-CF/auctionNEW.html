@@ -202,6 +202,11 @@ font-weight: 800;
 
 
 <script>
+  const params = new URLSearchParams(window.location.search);
+const currentBidder = params.get("bidder");
+
+  let showMyBidsOnly = false;
+let currentItems = [];
     let lastDataHash = "";
 
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwjcBzFLO9XFpkWhbTLaRdG4DqpAbrvmnEPc9EwwG6eTwfG73UTQGZD2-U10aeUCV-6/exec";
@@ -239,15 +244,23 @@ function showBidPopup(){
 
 /* RENDER */
 function renderItems(items){
-  if(!items || items.length === 0){
-  document.getElementById("auctionItems").innerHTML = "Loading...";
-  return;
-}
-  
+
   const div = document.getElementById("auctionItems");
+
+  if(!items || items.length === 0){
+    div.innerHTML = "Loading...";
+    return;
+  }
+
   div.innerHTML = "";
 
   items.forEach(item=>{
+
+    // ✅ FILTER (My Bids)
+    if(showMyBidsOnly && String(item.current_winner) !== String(currentBidder)){
+      return;
+    }
+
     const id = item.item_id;
     const bid = item.current_bid || 0;
 
@@ -265,32 +278,31 @@ function renderItems(items){
           Bid $${bid+50}
         </button>
 
-<div class="custom-bid-box">
+        <div class="custom-bid-box">
 
-  <div class="custom-input-wrap">
+          <div class="custom-input-wrap">
 
+            <input
+              id="input-${id}"
+              inputmode="numeric"
+              placeholder="Place Custom Bid"
+              onfocus="startInteraction()"
+              onclick="event.stopPropagation()"
+              onkeydown="handleBidEnter(event, '${id}')"
+            >
 
-    <input
-  id="input-${id}"
-  inputmode="numeric"
-  placeholder="Place Custom Bid"
-  onfocus="startInteraction()"
-  onclick="event.stopPropagation()"
-  onkeydown="handleBidEnter(event, '${id}')"
->
-  </div>
+          </div>
 
-  <button onclick="placeCustomBid('${id}')">
-    Submit Bid
-  </button>
+          <button onclick="placeCustomBid('${id}')">
+            Submit Bid
+          </button>
 
-</div>
+        </div>
 
       </div>
     `;
   });
 }
-
 /* FETCH */
 async function fetchItems(){
   const res = await fetch(`${SCRIPT_URL}?items=true`);
@@ -303,7 +315,8 @@ async function fetchItems(){
   }
 
   lastDataHash = newHash;
-  renderItems(data);
+  currentItems = data;
+renderItems(data);
 }
 
 /* QUICK BID */
@@ -343,7 +356,10 @@ async function placeCustomBid(id){
 
 /* NAV */
 function goHome(){ window.location.href="/"; }
-function toggleMyBids(){}
+function toggleMyBids(){
+  showMyBidsOnly = !showMyBidsOnly;
+  renderItems(currentItems);
+}
 
 /* INIT */
 fetchItems();
