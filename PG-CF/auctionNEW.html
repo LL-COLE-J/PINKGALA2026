@@ -9,75 +9,72 @@
 <style>
 body {
   font-family: 'Poppins', sans-serif;
-  background: linear-gradient(135deg, #f5f6fa, #e4e7ec);
+  background: linear-gradient(135deg, #fff0f4, #fce4ec);
   margin: 0;
-  padding: 20px;
+  padding: 16px;
 }
 
 h2 {
   text-align: center;
-  margin-bottom: 20px;
+  margin-bottom: 15px;
+  font-weight: 600;
 }
 
 #items {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .item {
   background: white;
-  border-radius: 18px;
-  padding: 18px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.08);
-  transition: 0.2s ease;
-}
-
-.item:hover {
-  transform: translateY(-4px);
+  border-radius: 14px;
+  padding: 14px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
 }
 
 .item h3 {
-  margin: 0 0 10px;
-  font-weight: 600;
+  margin: 0 0 6px;
+  font-size: 16px;
 }
 
 .bid {
-  font-size: 20px;
-  font-weight: bold;
-  margin-bottom: 12px;
-  color: #333;
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.row {
+  display: flex;
+  gap: 8px;
 }
 
 input {
-  width: 100%;
+  flex: 1;
   padding: 10px;
   border-radius: 10px;
-  border: 1px solid #ccc;
-  margin-bottom: 10px;
+  border: 1px solid #ddd;
   font-size: 14px;
 }
 
 button {
-  width: 100%;
-  padding: 12px;
+  padding: 10px 14px;
   border: none;
-  border-radius: 12px;
-  background: linear-gradient(135deg, #ff4d6d, #ff758f);
+  border-radius: 10px;
+  background: linear-gradient(135deg, #ff5a7a, #ff8fa3);
   color: white;
   font-weight: 600;
   cursor: pointer;
-  transition: 0.2s;
 }
 
-button:hover {
-  opacity: 0.9;
+button:active {
+  transform: scale(0.97);
 }
 
 .status {
   font-size: 12px;
-  margin-top: 6px;
-  color: #888;
+  margin-top: 5px;
+  color: #999;
 }
 </style>
 </head>
@@ -92,9 +89,6 @@ const API = "https://mute-fog-a9af.llcolej8.workers.dev";
 
 let loading = false;
 
-// =========================
-// LOAD AUCTION
-// =========================
 async function loadAuction() {
   if (loading) return;
   loading = true;
@@ -116,15 +110,10 @@ async function loadAuction() {
         <h3>${item.name}</h3>
         <div class="bid">$${item.currentBid}</div>
 
-        <input 
-          type="number" 
-          id="bid-${item.itemId}" 
-          placeholder="Enter bid"
-        />
-
-        <button onclick="placeBid('${item.itemId}')">
-          Place Bid
-        </button>
+        <div class="row">
+          <input type="number" id="bid-${item.itemId}" placeholder="Bid">
+          <button onclick="placeBid('${item.itemId}')">Bid</button>
+        </div>
 
         <div class="status" id="status-${item.itemId}"></div>
       `;
@@ -139,9 +128,6 @@ async function loadAuction() {
   loading = false;
 }
 
-// =========================
-// PLACE BID
-// =========================
 async function placeBid(itemId) {
   const input = document.getElementById("bid-" + itemId);
   const status = document.getElementById("status-" + itemId);
@@ -149,7 +135,7 @@ async function placeBid(itemId) {
   const bid = Number(input.value);
 
   if (!bid) {
-    status.textContent = "Enter valid bid";
+    status.textContent = "Enter bid";
     return;
   }
 
@@ -158,13 +144,8 @@ async function placeBid(itemId) {
   try {
     const res = await fetch(API, {
       method: "POST",
-      headers: {
-        "Content-Type": "text/plain"
-      },
-      body: JSON.stringify({
-        itemId: itemId,
-        bid: bid
-      })
+      headers: { "Content-Type": "text/plain" },
+      body: JSON.stringify({ itemId, bid })
     });
 
     const text = await res.text();
@@ -173,28 +154,24 @@ async function placeBid(itemId) {
     try {
       result = JSON.parse(text);
     } catch {
-      console.error("BAD RESPONSE:", text);
-      status.textContent = "Server error";
+      status.textContent = "Server issue";
       return;
     }
 
     if (result.success) {
-      status.textContent = "Bid placed!";
+      status.textContent = "✔ Bid placed";
       input.value = "";
       loadAuction();
     } else {
-      status.textContent = result.message || "Bid failed";
+      status.textContent = result.message;
     }
 
   } catch (err) {
-    console.error("BID ERROR:", err);
-    status.textContent = "Request failed";
+    console.error(err);
+    status.textContent = "Error";
   }
 }
 
-// =========================
-// START AFTER DOM READY
-// =========================
 document.addEventListener("DOMContentLoaded", () => {
   loadAuction();
   setInterval(loadAuction, 4000);
