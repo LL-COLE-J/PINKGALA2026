@@ -317,7 +317,7 @@ const statusClass = isWinning ? "status-winning" : "status-losing";
 
         ${item.image ? `<img class="item-image" src="${item.image}">` : ""}
 
-        <div class="item-title">${item_name}</div>
+   <div class="item-title">${item.item_name || item.name}</div>
 
         <div class="bid-amount">$${bid}</div>
 
