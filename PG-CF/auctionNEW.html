@@ -156,15 +156,23 @@ font-weight: 800;
 /* POPUP */
 .bid-popup {
   position: fixed;
-  top: 20px;
+  top: 30%;
   left: 50%;
-  transform: translateX(-50%) scale(0.9);
-  background: #38d96b;
+  transform: translate(-50%, -50%) scale(0.8);
+
+  background: linear-gradient(135deg, #5efc82, #38d96b);
   color: #000;
-  padding: 18px 28px;
-  border-radius: 12px;
-  font-size: 22px;
-  font-weight: bold;
+
+  padding: 40px 60px;
+  border-radius: 20px;
+
+  font-size: 40px;
+  font-weight: 900;
+
+  text-align: center;
+
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+
   opacity: 0;
   transition: all 0.25s ease;
   z-index: 9999;
@@ -172,7 +180,7 @@ font-weight: 800;
 
 .bid-popup.show {
   opacity: 1;
-  transform: translateX(-50%) scale(1);
+  transform: translate(-50%, -50%) scale(1);
 }
 
 </style>
@@ -189,7 +197,7 @@ font-weight: 800;
 
 <div id="auctionItems"></div>
 
-<div id="bidPopup" class="bid-popup">Bid Submitted!</div>
+<div id="bidPopup" class="bid-popup">✅ BID PLACED</div>
 
 
 
