@@ -187,9 +187,11 @@ font-weight: 800;
   <button onclick="toggleMyBids()">🎯 My Bids</button>
 </div>
 
-<div id="auctionItems">Loading...</div>
+<div id="auctionItems"></div>
 
 <div id="bidPopup" class="bid-popup">Bid Submitted!</div>
+
+  let lastDataHash = "";
 
 <script>
 
@@ -228,6 +230,10 @@ function showBidPopup(){
 
 /* RENDER */
 function renderItems(items){
+  if(!items || items.length === 0){
+  document.getElementById("auctionItems").innerHTML = "Loading...";
+  return;
+}
   
   const div = document.getElementById("auctionItems");
   div.innerHTML = "";
@@ -280,6 +286,14 @@ function renderItems(items){
 async function fetchItems(){
   const res = await fetch(`${SCRIPT_URL}?items=true`);
   const data = await res.json();
+
+  const newHash = JSON.stringify(data);
+
+  if(newHash === lastDataHash){
+    return;
+  }
+
+  lastDataHash = newHash;
   renderItems(data);
 }
 
@@ -324,7 +338,7 @@ function toggleMyBids(){}
 
 /* INIT */
 fetchItems();
-setInterval(()=>{ if(!isInteracting) fetchItems(); },3000);
+setInterval(()=>{ if(!isInteracting) fetchItems(); },2000);
 
 </script>
 
