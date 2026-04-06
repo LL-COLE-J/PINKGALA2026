@@ -307,18 +307,18 @@ async function fetchItems(){
 /* BIDS */
 async function placeQuickBid(id, amt, btn){
   btn.disabled = true;
-
-  await fetch(SCRIPT_URL, {
-    method: "POST",
-    body: new URLSearchParams({
-      bid: true,
-      item_id: id,
-      bidder_id: currentBidder,
-      bidder_name: currentGuest,
-      amount: amt
-    })
-  });
-
+await fetch(SCRIPT_URL, {
+  method: "POST",
+  mode: "no-cors",   // 🔥 REQUIRED
+  body: new URLSearchParams({
+    bid: true,
+    item_id: id,
+    bidder_id: currentBidder,
+    bidder_name: currentGuest,
+    amount: amt
+  })
+});
+  
   btn.disabled = false;
   fetchItems();
 }
@@ -327,15 +327,16 @@ async function placeCustomBid(id, btn){
   const val = document.getElementById(`input-${id}`).value;
 
   await fetch(SCRIPT_URL, {
-    method: "POST",
-    body: new URLSearchParams({
-      bid: true,
-      item_id: id,
-      bidder_id: currentBidder,
-      bidder_name: currentGuest,
-      amount: val
-    })
-  });
+  method: "POST",
+  mode: "no-cors",   // 🔥 REQUIRED
+  body: new URLSearchParams({
+    bid: true,
+    item_id: id,
+    bidder_id: currentBidder,
+    bidder_name: currentGuest,
+    amount: val
+  })
+});
 
   fetchItems();
 }
