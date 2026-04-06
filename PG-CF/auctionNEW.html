@@ -18,11 +18,13 @@ body {
   color: #e6e8ec;
 }
 
+/* 🔥 TITLE NOW PINK */
 h1 {
-  color: #cfd3dc;
+  color: #d63384;
   text-align: center;
 }
 
+/* LAYOUT */
 .app-body { padding: 0 10px 40px 10px; }
 
 #auctionItems {
@@ -31,6 +33,7 @@ h1 {
   gap: 22px;
 }
 
+/* ✅ BUTTONS SIDE BY SIDE */
 .top-actions {
   display: flex;
   gap: 10px;
@@ -44,6 +47,7 @@ h1 {
   border: 1px solid rgba(255,255,255,0.15);
 }
 
+/* CARD */
 .bid-item {
   border-radius: 20px;
   background: linear-gradient(145deg, #1e2128, #14161b);
@@ -58,42 +62,10 @@ h1 {
   border: 2px solid #4cd964;
 }
 
-.card-inner {
-  display: flex;
-  flex-direction: column;
-}
-
-.card-content {
-  display: flex;
-  gap: 16px;
-  padding: 18px;
-}
-
-.item-image {
-  width: 160px;
-  height: 160px;
-  object-fit: cover;
-  border-radius: 14px;
-  border: 1px solid rgba(255,255,255,0.08);
-}
-
-.card-text {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-
+/* CONTENT */
 .item-title {
   font-size: 40px;
   font-weight: 800;
-}
-
-.bid-box {
-  background: linear-gradient(145deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
-  padding: 16px;
-  border-radius: 16px;
-  margin: 12px 0;
-  border: 1px solid rgba(255,255,255,0.08);
 }
 
 .bid-amount {
@@ -102,8 +74,8 @@ h1 {
 }
 
 .bid-meta { font-size: 26px; }
-.bid-next { font-size: 24px; color: #9aa3b2; }
 
+/* BUTTON */
 button {
   border: none;
   border-radius: 14px;
@@ -127,13 +99,6 @@ button {
   border: 1px solid rgba(255,255,255,0.15);
 }
 
-.custom-label {
-  font-size: 20px;
-  font-weight: 700;
-  color: #e6e8ec;
-  margin-bottom: 10px;
-}
-
 input {
   padding: 18px;
   font-size: 26px;
@@ -151,12 +116,6 @@ input {
   color: #000;
 }
 
-@media (max-width: 700px) {
-  .card-content { flex-direction: column; }
-  .item-image { width: 100%; height: 220px; }
-  .bid-amount { font-size: 70px; }
-}
-
 </style>
 </head>
 
@@ -166,8 +125,10 @@ input {
 
 <div class="app-body">
 
+<!-- ✅ BUTTONS SIDE BY SIDE -->
 <div class="top-actions">
   <button onclick="goHome()">🏠 Home</button>
+  <button onclick="toggleMyBids()" id="myBidsBtn">🎯 My Bids</button>
 </div>
 
 <div style="text-align:center; margin-bottom:20px;">
@@ -188,6 +149,19 @@ document.getElementById("userInfo").innerText =
   currentGuest ? `${currentGuest} (Bidder #${currentBidder})` : "";
 
 const SCRIPT_URL="https://script.google.com/macros/s/AKfycbwjcBzFLO9XFpkWhbTLaRdG4DqpAbrvmnEPc9EwwG6eTwfG73UTQGZD2-U10aeUCV-6/exec";
+
+/* MY BIDS TOGGLE */
+let showMyBids=false;
+let allItemsCache=[];
+
+function toggleMyBids(){
+  showMyBids=!showMyBids;
+
+  document.getElementById("myBidsBtn").innerText =
+    showMyBids ? "📋 All Items" : "🎯 My Bids";
+
+  renderItems(allItemsCache);
+}
 
 /* SEND BID */
 function sendBid(itemId,amount){
@@ -227,11 +201,13 @@ function placeCustomBid(id,currentBid){
   sendBid(id,val);
 }
 
-/* FETCH ITEMS */
+/* FETCH */
 async function fetchItems(){
   try{
     const res=await fetch(`${SCRIPT_URL}?items=true`);
     const data=await res.json();
+
+    allItemsCache=data;
     renderItems(data);
   }catch(e){
     console.error("fetch fail",e);
@@ -240,8 +216,18 @@ async function fetchItems(){
 
 /* RENDER */
 function renderItems(items){
+
   const div=document.getElementById("auctionItems");
   div.innerHTML="";
+
+  if(showMyBids){
+    items=items.filter(item=>item.current_winner==currentBidder);
+  }
+
+  if(items.length===0){
+    div.innerHTML=`<div style="text-align:center;opacity:0.7;font-size:22px;">No bids yet</div>`;
+    return;
+  }
 
   items.forEach(item=>{
 
@@ -250,7 +236,6 @@ function renderItems(items){
     const increment=item.bid_increment||50;
 
     const isWinning=item.current_winner==currentBidder;
-    const isOutbid=item.current_winner && item.current_winner!=currentBidder;
 
     div.innerHTML+=`
       <div class="bid-item ${isWinning ? 'winning' : ''}">
@@ -258,12 +243,10 @@ function renderItems(items){
 
         <div class="bid-amount">$${bid}</div>
 
+        <!-- ✅ NOW SHOWING BIDDER NUMBER -->
         <div class="bid-meta">
-          Leading: ${item.current_winner_name || '—'}
+          Leading: ${item.current_winner || '—'}
         </div>
-
-        ${isWinning ? '<div style="color:#4cd964;font-weight:bold;">✔ You are winning</div>' : ''}
-        ${isOutbid ? '<div style="color:#ff4d4d;font-weight:bold;">❌ You are outbid</div>' : ''}
 
         <button class="bid-btn"
           ${isWinning ? 'disabled' : ''}
