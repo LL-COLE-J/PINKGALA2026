@@ -3,59 +3,116 @@
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Auction</title>
+
+<style>
+body {
+  font-family: Arial;
+  padding: 20px;
+}
+
+.item {
+  border: 1px solid #ddd;
+  padding: 15px;
+  margin-bottom: 15px;
+  border-radius: 10px;
+}
+
+button {
+  padding: 8px 12px;
+  cursor: pointer;
+}
+</style>
+
 </head>
 <body>
 
-<h2>Auction Items</h2>
+<h2>Live Auction</h2>
 <div id="items"></div>
 
 <script>
-const API = "YOUR_WEB_APP_URL";
+const API = "https://script.google.com/macros/s/AKfycbzFeVWBQvxbh8AvC0HtN3wbcXga31CmbfeYef1opsgkc98omqTSjhaTANB5fw9e3-8N/exec";
 
+let loading = false;
+
+// =========================
+// LOAD AUCTION
+// =========================
 async function loadAuction() {
-  const res = await fetch(API + "?auction=true");
-  const items = await res.json();
+  if (loading) return;
+  loading = true;
 
-  const container = document.getElementById("items");
-  container.innerHTML = "";
+  try {
+    const res = await fetch(API + "?auction=true");
+    const items = await res.json();
 
-  items.forEach(item => {
-    const div = document.createElement("div");
+    const container = document.getElementById("items");
+    container.innerHTML = "";
 
-    div.innerHTML = `
-      <h3>${item.name}</h3>
-      <p>Current Bid: $${item.currentBid}</p>
-      <input type="number" id="bid-${item.itemId}" placeholder="Enter bid"/>
-      <button onclick="placeBid(${item.itemId})">Bid</button>
-      <hr/>
-    `;
+    items.forEach(item => {
+      const div = document.createElement("div");
+      div.className = "item";
 
-    container.appendChild(div);
-  });
+      div.innerHTML = `
+        <h3>${item.name}</h3>
+        <p><strong>Current Bid:</strong> $${item.currentBid}</p>
+        <input type="number" id="bid-${item.itemId}" placeholder="Enter bid"/>
+        <button onclick="placeBid('${item.itemId}')">Place Bid</button>
+      `;
+
+      container.appendChild(div);
+    });
+
+  } catch (err) {
+    console.error(err);
+  }
+
+  loading = false;
 }
 
+// =========================
+// PLACE BID
+// =========================
 async function placeBid(itemId) {
-  const bid = document.getElementById("bid-" + itemId).value;
+  const input = document.getElementById("bid-" + itemId);
+  const bid = Number(input.value);
 
-  const res = await fetch(API, {
-    method: "POST",
-    body: JSON.stringify({
-      itemId: itemId,
-      bid: Number(bid)
-    })
-  });
+  if (!bid) {
+    alert("Enter a valid bid");
+    return;
+  }
 
-  const result = await res.json();
+  try {
+    const res = await fetch(API, {
+      method: "POST",
+      body: JSON.stringify({
+        itemId: itemId,
+        bid: bid
+      })
+    });
 
-  if (result.success) {
-    alert("Bid placed!");
-    loadAuction();
-  } else {
-    alert(result.message || "Bid failed");
+    const result = await res.json();
+
+    if (result.success) {
+      input.value = "";
+      loadAuction();
+    } else {
+      alert(result.message);
+    }
+
+  } catch (err) {
+    console.error(err);
+    alert("Error placing bid");
   }
 }
 
+// =========================
+// AUTO REFRESH
+// =========================
+setInterval(loadAuction, 5000);
+
+// INITIAL LOAD
 loadAuction();
+
 </script>
 
 </body>
