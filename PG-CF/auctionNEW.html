@@ -227,8 +227,8 @@ font-weight: 800;
 
 <script>
  const params = new URLSearchParams(window.location.search);
-const currentBidder = params.get("bidder");
-const currentGuest = params.get("name") || "Bidder " + currentBidder;
+const currentBidder = params.get("bidder") || "0";
+const currentGuest = params.get("name") || "Guest";
 
 
   let showMyBidsOnly = false;
@@ -238,7 +238,7 @@ let currentItems = [];
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwjcBzFLO9XFpkWhbTLaRdG4DqpAbrvmnEPc9EwwG6eTwfG73UTQGZD2-U10aeUCV-6/exec";
 
 function sendBid(data) {
-
+console.log("SENDING BID:", data);
   const formData = new FormData();
 
   formData.append("bid", "true");
