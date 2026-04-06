@@ -239,7 +239,7 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwjcBzFLO9XFpkWhbTLa
 
 function sendBid(data) {
 
-  const formData = new URLSearchParams();
+  const formData = new FormData();
 
   formData.append("bid", "true");
   formData.append("item_id", data.itemId);
