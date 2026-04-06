@@ -204,152 +204,96 @@ input {
   <div class="loading-state">⏳ Loading auction items...</div>
 </div>
 
+<!-- KEEP EVERYTHING ABOVE EXACTLY AS YOU HAD IT -->
+
 <script>
 
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwjcBzFLO9XFpkWhbTLaRdG4DqpAbrvmnEPc9EwwG6eTwfG73UTQGZD2-U10aeUCV-6/exec";
+const params=new URLSearchParams(window.location.search);
+const currentBidder=params.get("bidder")||"";
+const currentGuest=params.get("name")||"";
 
-let currentItems = [];
-let showMyBidsOnly = false;
+const SCRIPT_URL="https://script.google.com/macros/s/AKfycbwjcBzFLO9XFpkWhbTLaRdG4DqpAbrvmnEPc9EwwG6eTwfG73UTQGZD2-U10aeUCV-6/exec";
 
-const params = new URLSearchParams(window.location.search);
+/* SEND BID */
+function sendBid(itemId,amount){
 
-const user = {
-  name: decodeURIComponent(params.get("name") || ""),
-  bidderId: params.get("bidder"),
-  table: params.get("table")
-};
+  fetch(SCRIPT_URL,{
+    method:"POST",
+    mode:"no-cors",
+    body:new URLSearchParams({
+      bid:"true",
+      item_id:itemId,
+      bidder_id:currentBidder,
+      bidder_name:currentGuest,
+      amount:amount
+    })
+  });
 
-let currentGuest = user.name;
-let currentBidder = user.bidderId;
-
-function goHome() {
-  window.location.href = "/index.html" + window.location.search;
 }
 
-function toggleMyBids() {
-  showMyBidsOnly = !showMyBidsOnly;
-  renderItems(currentItems);
+/* QUICK */
+function placeQuickBid(id,amt,btn){
+  btn.disabled=true;
+
+  sendBid(id,amt);
+
+  setTimeout(()=>btn.disabled=false,500);
+}
+
+/* CUSTOM */
+function placeCustomBid(id){
+  const val=Number(document.getElementById(`input-${id}`).value);
+  if(!val)return alert("Enter valid bid");
+  sendBid(id,val);
+}
+
+/* FETCH ITEMS */
+async function fetchItems(){
+  try{
+    const res=await fetch(`${SCRIPT_URL}?items=true`);
+    const data=await res.json();
+    renderItems(data);
+  }catch(e){
+    console.error("fetch fail",e);
+  }
 }
 
 /* RENDER */
-function renderItems(items) {
+function renderItems(items){
+  const div=document.getElementById("auctionItems");
+  div.innerHTML="";
 
-  const div = document.getElementById("auctionItems");
-  div.innerHTML = "";
+  items.forEach(item=>{
+    const id=item.item_id;
+    const bid=item.current_bid||0;
 
-  items.forEach(item => {
-
-    const id = item.item_id;
-    const name = item.name;
-    const bid = item.current_bid || item.starting_bid || 0;
-    const winner = item.current_winner || "-";
-    const image = item.image || "";
-    const next = bid + 50;
-
-    const isWinning = String(winner) === String(currentBidder);
-
-    const card = document.createElement("div");
-    card.className = "bid-item";
-    if (isWinning) card.classList.add("winning");
-
-    card.innerHTML = `
-<div class="card-inner">
-  <div class="card-content">
-
-    ${image ? `<img class="item-image" src="${image}">` : ""}
-
-    <div class="card-text">
-
-      <div class="item-title">${name}</div>
-
-      <div class="bid-box">
+    div.innerHTML+=`
+      <div class="bid-item">
+        <div class="item-title">${item.item_name}</div>
         <div class="bid-amount">$${bid}</div>
-        <div class="bid-meta">Leader: ${winner}</div>
-        <div class="bid-next">Next: $${next}</div>
-      </div>
 
-      <button class="bid-btn"
-        onclick="placeQuickBid('${id}', ${next}, this)">
-        Bid $${next}
-      </button>
-
-      <div class="custom-bid-box">
-
-        <div class="custom-label">Enter Custom Bid</div>
-
-        <input id="input-${id}" type="text">
-
-        <button onclick="placeCustomBid('${id}', this)">
-          Submit Bid
+        <button class="bid-btn"
+          onclick="placeQuickBid('${id}',${bid+50},this)">
+          BID $${bid+50}
         </button>
 
+        <div class="custom-bid-box">
+          <input id="input-${id}" placeholder="Custom Bid">
+          <button onclick="placeCustomBid('${id}')">Submit</button>
+        </div>
       </div>
-
-      <div id="status-${id}"></div>
-
-    </div>
-  </div>
-</div>
     `;
-
-    div.appendChild(card);
   });
 }
 
-/* FETCH */
-async function fetchItems(){
-  const res = await fetch(`${SCRIPT_URL}?items=true`);
-  const data = await res.json();
-  currentItems = data;
-  renderItems(data);
-}
-
-/* BIDS */
-async function placeQuickBid(id, amt, btn){
-  btn.disabled = true;
-await fetch(SCRIPT_URL, {
-  method: "POST",
-  mode: "no-cors",   // 🔥 REQUIRED
-  body: new URLSearchParams({
-    bid: true,
-    item_id: id,
-    bidder_id: currentBidder,
-    bidder_name: currentGuest,
-    amount: amt
-  })
-});
-  
-  btn.disabled = false;
-  fetchItems();
-}
-
-async function placeCustomBid(id, btn){
-  const val = document.getElementById(`input-${id}`).value;
-
-  await fetch(SCRIPT_URL, {
-  method: "POST",
-  mode: "no-cors",   // 🔥 REQUIRED
-  body: new URLSearchParams({
-    bid: true,
-    item_id: id,
-    bidder_id: currentBidder,
-    bidder_name: currentGuest,
-    amount: val
-  })
-});
-
-  fetchItems();
+/* NAV */
+function goHome(){
+  window.location.href="checkin.html";
 }
 
 /* INIT */
-document.addEventListener("DOMContentLoaded", () => {
-  fetchItems();
-
-  document.getElementById("userInfo").innerText =
-    `${user.name} | Bidder #${user.bidderId}`;
-
-  setInterval(fetchItems, 3000);
-});
+fetchItems();
+setInterval(fetchItems,3000);
 
 </script>
 
