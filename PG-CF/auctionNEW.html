@@ -5,22 +5,9 @@
 <title>Auction</title>
 
 <style>
-body {
-  font-family: Arial;
-  padding: 20px;
-}
-
-.item {
-  border: 1px solid #ddd;
-  padding: 15px;
-  margin-bottom: 15px;
-  border-radius: 10px;
-}
-
-button {
-  padding: 8px 12px;
-  cursor: pointer;
-}
+body { font-family: Arial; padding: 20px; }
+.item { border: 1px solid #ddd; padding: 15px; margin-bottom: 15px; border-radius: 10px; }
+button { padding: 8px 12px; cursor: pointer; }
 </style>
 
 </head>
@@ -34,9 +21,7 @@ const API = "https://mute-fog-a9af.llcolej8.workers.dev";
 
 let loading = false;
 
-// =========================
-// LOAD AUCTION
-// =========================
+// LOAD
 async function loadAuction() {
   if (loading) return;
   loading = true;
@@ -54,59 +39,46 @@ async function loadAuction() {
 
       div.innerHTML = `
         <h3>${item.name}</h3>
-        <p><strong>Current Bid:</strong> $${item.currentBid}</p>
-        <input type="number" id="bid-${item.itemId}" placeholder="Enter bid"/>
-        <button onclick="placeBid('${item.itemId}')">Place Bid</button>
+        <p>$${item.currentBid}</p>
+        <input type="number" id="bid-${item.itemId}" />
+        <button onclick="bid('${item.itemId}')">Bid</button>
       `;
 
       container.appendChild(div);
     });
 
-  } catch (err) {
-    console.error("LOAD ERROR:", err);
+  } catch (e) {
+    console.error("LOAD FAIL", e);
   }
 
   loading = false;
 }
 
-// =========================
-// PLACE BID
-// =========================
-async function placeBid(itemId) {
-  const input = document.getElementById("bid-" + itemId);
-  const bid = Number(input.value);
-
-  if (!bid) return alert("Enter a valid bid");
+// BID
+async function bid(id) {
+  const val = Number(document.getElementById("bid-" + id).value);
+  if (!val) return alert("Enter bid");
 
   try {
     const res = await fetch(API, {
       method: "POST",
-      body: JSON.stringify({
-        itemId: itemId,
-        bid: bid
-      })
+      body: JSON.stringify({ itemId: id, bid: val })
     });
 
-    const result = await res.json();
+    const r = await res.json();
 
-    if (result.success) {
-      input.value = "";
-      loadAuction();
+    if (!r.success) {
+      alert(r.message);
     } else {
-      alert(result.message);
+      loadAuction();
     }
 
-  } catch (err) {
-    console.error("BID ERROR:", err);
+  } catch (e) {
+    console.error("BID FAIL", e);
   }
 }
 
-// =========================
-// AUTO REFRESH
-// =========================
 setInterval(loadAuction, 4000);
-
-// INITIAL LOAD
 loadAuction();
 </script>
 
