@@ -220,14 +220,15 @@ function renderItems(items){
         </button>
 
         <div class="custom-bid-box" onclick="focusBidInput('${id}')">
-        <div class="custom-label">Place Custom Bid</div>
 
-          <input
-            id="input-${id}"
-            inputmode="numeric"
-            onfocus="startInteraction()"
-            onkeydown="handleBidEnter(event, '${id}')"
-          >
+  <div class="custom-label">Place Custom Bid</div>
+
+  <input
+    id="input-${id}"
+    inputmode="numeric"
+    onfocus="startInteraction()"
+    onkeydown="handleBidEnter(event, '${id}')"
+  >
 
           <button onclick="placeCustomBid('${id}')">
             Submit Bid
