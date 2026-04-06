@@ -226,9 +226,9 @@ font-weight: 800;
 
 
 <script>
-  const currentGuest = params.get("name") || "Bidder " + currentBidder;
-  const params = new URLSearchParams(window.location.search);
+ const params = new URLSearchParams(window.location.search);
 const currentBidder = params.get("bidder");
+const currentGuest = params.get("name") || "Bidder " + currentBidder;
 
 
   let showMyBidsOnly = false;
@@ -359,24 +359,23 @@ renderItems(data);
 }
 
 /* QUICK BID */
-async function placeQuickBid(id, amt, btn){
-  btn.disabled = true;
+async function placeCustomBid(id){
+  const val = document.getElementById(`input-${id}`).value;
 
   await fetch(SCRIPT_URL,{
     method:"POST",
-   body:new URLSearchParams({
-  bid:true,
-  item_id:id,
-  bidder_id: currentBidder,
-  bidder_name: currentGuest,
-  amount:amt
-})
+    body:new URLSearchParams({
+      bid:true,
+      item_id:id,
+      bidder_id: currentBidder,
+      bidder_name: currentGuest,
+      amount:val
+    })
+  });
 
-  btn.disabled=false;
   showBidPopup();
   fetchItems();
 }
-
 /* CUSTOM BID */
 async function placeCustomBid(id){
   const val = document.getElementById(`input-${id}`).value;
