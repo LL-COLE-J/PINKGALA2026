@@ -365,15 +365,16 @@ async function placeQuickBid(id, amt, btn){
   btn.disabled = true;
 
   await fetch(SCRIPT_URL,{
-    method:"POST",
-    body:new URLSearchParams({
-      bid:true,
-      item_id:id,
-      bidder_id: currentBidder,
-      bidder_name: currentGuest,
-      amount:amt
-    })
-  });
+  method:"POST",
+  mode: "no-cors",   // 🔥 ADD THIS
+  body:new URLSearchParams({
+    bid:true,
+    item_id:id,
+    bidder_id: currentBidder,
+    bidder_name: currentGuest,
+    amount:amt
+  })
+});
 
   btn.disabled = false;
 
@@ -384,16 +385,17 @@ async function placeQuickBid(id, amt, btn){
 async function placeCustomBid(id){
   const val = document.getElementById(`input-${id}`).value;
 
-  await fetch(SCRIPT_URL,{
-    method:"POST",
-    body:new URLSearchParams({
-  bid:true,
-  item_id:id,
-  bidder_id: currentBidder,
-  bidder_name: currentGuest,
-  amount:val
-})
-  });
+ await fetch(SCRIPT_URL,{
+  method:"POST",
+  mode: "no-cors",   // 🔥 ADD THIS
+  body:new URLSearchParams({
+    bid:true,
+    item_id:id,
+    bidder_id: currentBidder,
+    bidder_name: currentGuest,
+    amount:amt
+  })
+});
 
   showBidPopup();
   fetchItems();
