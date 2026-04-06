@@ -226,6 +226,7 @@ font-weight: 800;
 
 
 <script>
+  const currentGuest = params.get("name") || "Bidder " + currentBidder;
   const params = new URLSearchParams(window.location.search);
 const currentBidder = params.get("bidder");
   const currentGuest = params.get("name") || "Bidder " + currentBidder;
