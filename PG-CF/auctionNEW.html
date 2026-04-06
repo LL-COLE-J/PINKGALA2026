@@ -228,6 +228,7 @@ font-weight: 800;
 <script>
   const params = new URLSearchParams(window.location.search);
 const currentBidder = params.get("bidder");
+  const currentGuest = params.get("name") || "Bidder " + currentBidder;
 
   let showMyBidsOnly = false;
 let currentItems = [];
@@ -362,12 +363,13 @@ async function placeQuickBid(id, amt, btn){
 
   await fetch(SCRIPT_URL,{
     method:"POST",
-    body:new URLSearchParams({
-      bid:true,
-      item_id:id,
-      amount:amt
-    })
-  });
+   body:new URLSearchParams({
+  bid:true,
+  item_id:id,
+  bidder_id: currentBidder,
+  bidder_name: currentGuest,
+  amount:amt
+})
 
   btn.disabled=false;
   showBidPopup();
@@ -381,11 +383,12 @@ async function placeCustomBid(id){
   await fetch(SCRIPT_URL,{
     method:"POST",
     body:new URLSearchParams({
-      bid:true,
-      item_id:id,
-      amount:val
-    })
-  });
+  bid:true,
+  item_id:id,
+  bidder_id: currentBidder,
+  bidder_name: currentGuest,
+  amount:val
+})
 
   showBidPopup();
   fetchItems();
