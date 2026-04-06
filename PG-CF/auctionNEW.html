@@ -143,16 +143,22 @@ document.getElementById("userInfo").innerText =
 
 const SCRIPT_URL="https://script.google.com/macros/s/AKfycbwjcBzFLO9XFpkWhbTLaRdG4DqpAbrvmnEPc9EwwG6eTwfG73UTQGZD2-U10aeUCV-6/exec";
 
-/* 🔥 HASH GUARD */
+/* HASH GUARD */
 let lastDataHash = "";
 
-/* 🔥 NEW: TRACK USER BIDS */
+/* MY BIDS (PERSISTED) */
 let myBids = new Set();
 
-/* 🔥 NEW: TRACK WIN STATE */
+// 🔥 LOAD FROM STORAGE
+const saved = localStorage.getItem("myBids");
+if (saved) {
+  myBids = new Set(JSON.parse(saved));
+}
+
+/* WIN STATE */
 let lastWinningState = {};
 
-/* MY BIDS */
+/* MY BIDS TOGGLE */
 let showMyBids=false;
 let allItemsCache=[];
 
@@ -190,7 +196,8 @@ function sendBid(itemId,amount){
 function placeQuickBid(id,amt,btn){
   btn.disabled=true;
 
-  myBids.add(String(id)); // 🔥 TRACK BID
+  myBids.add(String(id));
+  localStorage.setItem("myBids", JSON.stringify([...myBids]));
 
   sendBid(id,amt);
 
@@ -204,7 +211,8 @@ function placeCustomBid(id,currentBid){
   if (!val || val <= 0) return alert("Enter valid bid");
   if (val <= currentBid) return alert("Bid must be higher");
 
-  myBids.add(String(id)); // 🔥 TRACK BID
+  myBids.add(String(id));
+  localStorage.setItem("myBids", JSON.stringify([...myBids]));
 
   sendBid(id,val);
 }
@@ -244,16 +252,15 @@ function renderItems(items){
 
   items.forEach(item=>{
 
-    const id=item.item_id;
+    const id=String(item.item_id);
     const bid=item.current_bid||0;
     const increment=item.bid_increment||50;
 
     const isWinning=item.current_winner==currentBidder;
-    const isOutbid=myBids.has(String(id)) && !isWinning;
+    const isOutbid=myBids.has(id) && item.current_winner!=currentBidder;
 
-    // 🔔 OUTBID ALERT
     const prev = lastWinningState[id];
-    if (prev === true && !isWinning && myBids.has(String(id))) {
+    if (prev === true && !isWinning && myBids.has(id)) {
       alert(`You were outbid on ${item.item_name}`);
     }
     lastWinningState[id] = isWinning;
