@@ -348,4 +348,10 @@ const GUESTS = [
   { id: "347", name: "Dr. Reece Jones", bidder: "447", table: "38" },
   { id: "348", name: "Jennifer Jones", bidder: "448", table: "38" },
   { id: "349", name: "Keelyn Boles", bidder: "449", table: "38" }
+  { id: "501", name: "Cole Jacobs", bidder: "501", table: "55" }
+  { id: "502", name: "John Bell", bidder: "502", table: "55" }
+  { id: "503", name: "Amanda Scott", bidder: "503", table: "55" }
+  { id: "504", name: "Caye Strong", bidder: "504", table: "55" }
+  { id: "505", name: "Ben Danner", bidder: "505", table: "55" }
+  { id: "506", name: "Liz Witt", bidder: "506", table: "55" }
 ];
