@@ -199,7 +199,7 @@ function handleCheckIn(id){
         ✅ Checked In
       </div>
 
-      <button onclick="enterAuction('${guest.name}','${guest.bidder}','${guest.table}')">
+      <button onclick="enterAuction(${JSON.stringify(guest.name)}, ${JSON.stringify(guest.bidder)}, ${JSON.stringify(guest.table)})">
         Enter Auction Starting Bid
       </button>
     </div>
