@@ -129,7 +129,7 @@ const checkedInSet = new Set();
 /* LOAD */
 function loadGuests() {
   guestList = GUESTS.map((g,i)=>({
-   id:String(g.id ?? (i + 1))
+   id:String(g.id ?? (i + 1)),
     name:g.name,
     bidder:g.bidder,
     table:g.table
