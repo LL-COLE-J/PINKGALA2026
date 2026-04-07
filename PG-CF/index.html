@@ -10,7 +10,7 @@
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-  
+
 <style>
 body{
   font-family:'Poppins',sans-serif;
@@ -97,6 +97,19 @@ button{
 }
 </style>
 
+</head>
+
+<body>
+
+<h1>Guest Check-In</h1>
+
+<input id="searchInput" placeholder="Search guest name..." />
+
+<div id="status">Loading guests...</div>
+<div id="loading">Loading...</div>
+
+<div id="guestList"></div>
+
 <script>
 
 // =========================
@@ -108,7 +121,6 @@ window.guestList = [];
 window.guestMap = {};
 window.checkedInSet = new Set();
 
-// 🔥 RELIABLE QUEUE
 window.queue = [];
 window.inFlight = [];
 window.timer = null;
@@ -198,7 +210,6 @@ window.handleCheckIn = function(id){
   confetti({particleCount:60,spread:70,origin:{y:0.6}});
 
   queue.push(id);
-
   startQueue();
 };
 
@@ -207,7 +218,7 @@ window.handleCheckIn = function(id){
 // =========================
 function startQueue() {
   if (!timer) {
-    timer = setInterval(processQueue, 700); // tuned for GAS
+    timer = setInterval(processQueue, 700);
   }
 }
 
@@ -225,10 +236,8 @@ function processQueue() {
 
   let batch;
 
-  // retry first
   if (inFlight.length > 0) {
     batch = inFlight.shift();
-    console.log("RETRYING:", batch.length);
   } else {
     batch = queue.splice(0, 20);
   }
@@ -240,24 +249,13 @@ function processQueue() {
       ids: JSON.stringify(batch)
     })
   })
-  .then(() => {
-    console.log("SENT:", batch.length);
-  })
   .catch(() => {
-    console.log("FAILED → REQUEUE");
     inFlight.push(batch);
   })
   .finally(() => {
     sending = false;
   });
 }
-
-// =========================
-// NAV
-// =========================
-window.enterAuction = function(name,bidder,table){
-  window.location.href=`auctionNEW.html?name=${encodeURIComponent(name)}&bidder=${bidder}&table=${table}`;
-};
 
 // =========================
 // INIT
