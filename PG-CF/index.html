@@ -101,7 +101,12 @@ button{
 
 <body>
 
-<h1>Guest Check-In</h1>
+<!-- 🎀 PINK RIBBON -->
+<img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/Pink_ribbon.svg"
+     alt="Pink Ribbon"
+     style="width:100px; display:block; margin:0 auto 10px;">
+
+<h1>Welcome to 2026 Pink Gala</h1>
 
 <input id="searchInput" placeholder="Search guest name..." />
 
@@ -257,11 +262,14 @@ function processQueue() {
   });
 }
 
-  // =========================
+// =========================
 // NAV
 // =========================
 window.enterAuction = function(name,bidder,table){
-  window.location.href = `auctionNEW.html?name=${encodeURIComponent(name)}&bidder=${bidder}&table=${table}`;
+  window.location.href =
+    "auctionNEW.html?name=" + encodeURIComponent(name) +
+    "&bidder=" + bidder +
+    "&table=" + table;
 };
 
 // =========================
