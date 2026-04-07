@@ -119,17 +119,21 @@ button{
 
 <script>
 
-// ✅ YOUR LIVE WEB APP URL
+// ✅ WORKER URL
 const SCRIPT_URL = "https://mute-fog-a9af.llcolej8.workers.dev";
 
 let guestList = [];
 const guestMap = {};
 const checkedInSet = new Set();
 
+// 🔥 QUEUE SYSTEM (NEW)
+let queue = [];
+let timer = null;
+
 /* LOAD */
 function loadGuests() {
   guestList = GUESTS.map((g,i)=>({
-   id:String(g.id ?? (i + 1)),
+    id:String(g.id ?? (i + 1)),
     name:g.name,
     bidder:g.bidder,
     table:g.table
@@ -164,36 +168,40 @@ function handleSearch(e){
   document.getElementById("status").innerText=`${results.length} match(es)`;
 }
 
-/* CHECK-IN (FIXED + BACKEND MATCHED) */
+/* 🔥 CHECK-IN (OPTIMIZED) */
 function handleCheckIn(id){
 
   if(checkedInSet.has(id)) return;
   checkedInSet.add(id);
 
-  // ✅ HARD FIX: fallback lookup (prevents undefined guest)
-  let guest = guestMap[id];
+  let guest = guestMap[id] || guestList.find(g => String(g.id) === String(id));
+  if (!guest) return;
 
-  if (!guest) {
-    guest = guestList.find(g => String(g.id) === String(id));
+  // 🔥 ADD TO QUEUE
+  queue.push(id);
+
+  // 🔥 BATCH SEND
+  if (!timer) {
+    timer = setTimeout(() => {
+
+      const batch = [...queue];
+      queue = [];
+      timer = null;
+
+      fetch(SCRIPT_URL, {
+        method: "POST",
+        body: new URLSearchParams({
+          ids: JSON.stringify(batch)
+        })
+      })
+      .then(res => res.text())
+      .then(res => console.log("BATCH SENT:", batch))
+      .catch(err => console.error("BATCH ERROR:", err));
+
+    }, 200);
   }
 
-  if (!guest) {
-    console.error("Guest lookup failed:", id);
-    return;
-  }
-
-  // ✅ BACKEND CALL (UNCHANGED LOGIC)
- fetch(SCRIPT_URL, {
-  method: "POST",
-  body: new URLSearchParams({
-    ids: JSON.stringify([id])
-  })
-})
-    .then(res => res.text())
-    .then(res => console.log("CHECK-IN RESPONSE:", res))
-    .catch(err => console.error("CHECK-IN ERROR:", err));
-
-  // ✅ UI (RESTORED)
+  // ✅ UI (UNCHANGED)
   document.getElementById("guestList").innerHTML=`
     <div class="tableCard">
       <div class="welcomeName">${guest.name}</div>
@@ -212,7 +220,8 @@ function handleCheckIn(id){
 
   confetti({particleCount:60,spread:70,origin:{y:0.6}});
 }
-/* NAVIGATE TO AUCTION */
+
+/* NAV */
 function enterAuction(name,bidder,table){
   window.location.href=`auctionNEW.html?name=${encodeURIComponent(name)}&bidder=${bidder}&table=${table}`;
 }
