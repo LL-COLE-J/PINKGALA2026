@@ -1,132 +1,13 @@
-<!DOCTYPE html>
-<html>
-<head>
-<link rel="icon" href="data:,">
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
-<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-
-<title>Pink Gala Check-In</title>
-
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-
-<style>
-body{
-  font-family:'Poppins',sans-serif;
-  margin:0;
-  padding:20px;
-  text-align:center;
-  background:linear-gradient(135deg,#fff0f6,#ffe3ec);
-}
-
-.matchButton {
-  background: linear-gradient(135deg, #d63384, #ff4da6);
-  color: white;
-  margin: 10px auto;
-  padding: 18px;
-  border-radius: 12px;
-  max-width: 420px;
-  font-size: 22px;
-  font-weight: 600;
-  box-shadow: 0 10px 25px rgba(214,51,132,0.35);
-  border: none;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.matchButton:hover {
-  transform: scale(1.03);
-  box-shadow: 0 14px 30px rgba(214,51,132,0.5);
-}
-
-.matchButton:active {
-  transform: scale(0.97);
-}
-
-.mainCard{
-  background:white;
-  padding:30px;
-  border-radius:16px;
-  max-width:500px;
-  margin:auto;
-  box-shadow:0 15px 40px rgba(0,0,0,0.1);
-}
-
-h1{ color:#d63384; }
-
-.tableCard{
-  margin-top:30px;
-  padding:50px 20px;
-  background:linear-gradient(135deg,#d63384,#ff66a3);
-  color:white;
-  border-radius:18px;
-}
-
-.tableNumber{ font-size:120px; }
-.bidderNumber{ font-size:32px; }
-.welcomeName{ font-size:28px; }
-
-input{
-  padding:20px;
-  font-size:24px;
-  width:100%;
-  max-width:420px;
-  border-radius:10px;
-  box-sizing:border-box;
-  margin:0 auto;
-  display:block;
-}
-
-button{
-  margin-top:15px;
-  padding:18px;
-  font-size:22px;
-  width:100%;
-  background:#d63384;
-  color:white;
-  border:none;
-  border-radius:10px;
-}
-
-#status{
-  margin-top:15px;
-  font-size:18px;
-  font-weight:600;
-  color:#d63384;
-}
-</style>
-</head>
-
-<body>
-
-<div class="mainCard">
-
-<div style="font-size:60px;margin-bottom:10px;color:#d63384;">🎗️</div>
-
-<h1>2026 Pink Gala Check-In</h1>
-
-<input id="searchInput" placeholder="Search guest..." />
-
-<div id="guestList"></div>
-
-<div id="loading">Loading guest list...</div>
-<div id="status"></div>
-
-</div>
-
-<script src="guests.js"></script>
-
 <script>
 
-// ✅ WORKER URL
+// ✅ DIRECT GAS URL (NOT WORKER)
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzFeVWBQvxbh8AvC0HtN3wbcXga31CmbfeYef1opsgkc98omqTSjhaTANB5fw9e3-8N/exec";
 
 let guestList = [];
 const guestMap = {};
 const checkedInSet = new Set();
 
-// 🔥 GLOBAL QUEUE SYSTEM
+// 🔥 QUEUE SYSTEM
 let queue = [];
 let timer = null;
 
@@ -168,7 +49,7 @@ function handleSearch(e){
   document.getElementById("status").innerText=`${results.length} match(es)`;
 }
 
-/* 🔥 CHECK-IN (FINAL SYSTEM) */
+/* CHECK-IN */
 function handleCheckIn(id){
 
   if(checkedInSet.has(id)) return;
@@ -177,13 +58,16 @@ function handleCheckIn(id){
   const guest = guestMap[id];
   if (!guest) return;
 
-  // ✅ INSTANT UI (UNCHANGED)
+  // ✅ INSTANT UI
   document.getElementById("guestList").innerHTML=`
     <div class="tableCard">
       <div class="welcomeName">${guest.name}</div>
       <div class="tableNumber">${guest.table||"-"}</div>
       <div class="bidderNumber">Bidder #${guest.bidder||"-"}</div>
-      <div style="margin-top:15px;font-size:20px;">✅ Checked In</div>
+
+      <div style="margin-top:15px;font-size:20px;">
+        ✅ Checked In
+      </div>
 
       <button onclick='enterAuction(${JSON.stringify(guest.name)}, ${JSON.stringify(guest.bidder)}, ${JSON.stringify(guest.table)})'>
         Enter Auction Starting Bid
@@ -193,22 +77,17 @@ function handleCheckIn(id){
 
   confetti({particleCount:60,spread:70,origin:{y:0.6}});
 
-  // 🔥 ADD TO QUEUE
+  // 🔥 QUEUE
   queue.push(id);
 
-  // 🔥 SEND IF LARGE ENOUGH
-  if (queue.length >= 20) {
-    sendBatch();
-    return;
-  }
+  if (queue.length >= 20) sendBatch();
 
-  // 🔥 OR TIME-BASED SEND
   if (!timer) {
     timer = setTimeout(sendBatch, 400);
   }
 }
 
-/* 🔥 BATCH SENDER */
+/* SEND */
 function sendBatch() {
 
   if (queue.length === 0) return;
@@ -223,12 +102,13 @@ function sendBatch() {
 
   fetch(SCRIPT_URL, {
     method: "POST",
+    mode: "no-cors", // 🔥 CORS FIX
     body: new URLSearchParams({
       ids: JSON.stringify(batch)
     })
-  })
-  .then(() => console.log("BATCH SENT:", batch.length))
-  .catch(err => console.error("BATCH ERROR:", err));
+  });
+
+  console.log("BATCH SENT:", batch.length);
 }
 
 /* NAV */
@@ -243,6 +123,3 @@ window.onload=()=>{
 };
 
 </script>
-
-</body>
-</html>
