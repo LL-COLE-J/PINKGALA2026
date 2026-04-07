@@ -6,28 +6,38 @@
 
 <style>
 body{
-  font-family: Arial, sans-serif;
+  font-family: Arial;
   background:#0b0b0b;
   color:#fff;
   margin:0;
   padding:10px;
 }
 
+/* HEADER */
 .header{
   text-align:center;
-  color:#00ff9c;
+  color:#d63384;
   font-size:22px;
   margin-bottom:10px;
 }
 
+/* TOP BUTTONS */
 .topBar{
   display:flex;
   justify-content:space-between;
-  align-items:center;
   margin-bottom:10px;
-  color:#00ff9c;
 }
 
+.topBtn{
+  background:#111;
+  border:1px solid #00ff9c;
+  color:#00ff9c;
+  padding:8px 14px;
+  border-radius:8px;
+  cursor:pointer;
+}
+
+/* CARD */
 .card{
   background:#111;
   border-radius:12px;
@@ -38,9 +48,7 @@ body{
   border:1px solid #00ff9c;
 }
 
-.cardLeft{
-  flex:1;
-}
+.cardLeft{ flex:1; }
 
 .cardRight img{
   width:90px;
@@ -49,15 +57,8 @@ body{
   border-radius:8px;
 }
 
-.itemName{
-  font-size:18px;
-  font-weight:600;
-}
-
-.price{
-  font-size:32px;
-  margin:5px 0;
-}
+.itemName{ font-size:18px; }
+.price{ font-size:32px; }
 
 .bidBtn{
   width:100%;
@@ -67,7 +68,6 @@ body{
   border-radius:8px;
   font-size:18px;
   margin-bottom:8px;
-  color:#000;
 }
 
 .customBox{
@@ -78,7 +78,6 @@ body{
   width:90%;
   padding:10px;
   margin-bottom:8px;
-  border-radius:6px;
 }
 
 .customBox button{
@@ -88,6 +87,18 @@ body{
 
 .statusWin{ color:#00ff9c; }
 .statusLose{ color:#ff4d4d; }
+
+/* MY BIDS PAGE */
+#myBidsPage{
+  display:none;
+}
+
+.bidItem{
+  border:1px solid #00ff9c;
+  padding:10px;
+  margin-bottom:10px;
+  border-radius:8px;
+}
 
 .toast{
   position:fixed;
@@ -99,7 +110,6 @@ body{
   padding:10px 20px;
   border-radius:8px;
   display:none;
-  border:1px solid #00ff9c;
 }
 </style>
 </head>
@@ -109,11 +119,17 @@ body{
 <div class="header">2026 Pink Gala Auction</div>
 
 <div class="topBar">
-  <div onclick="goHome()">🏠 Home</div>
-  <div id="myBids">My Bids: 0</div>
+  <div class="topBtn" onclick="goHome()">🏠 Home</div>
+  <div class="topBtn" onclick="openMyBids()">📊 My Bids</div>
 </div>
 
 <div id="items"></div>
+
+<!-- MY BIDS PAGE -->
+<div id="myBidsPage">
+  <h3>My Bids</h3>
+  <div id="myBidsList"></div>
+</div>
 
 <div id="toast" class="toast"></div>
 
@@ -139,83 +155,108 @@ function goHome(){
   window.location.href = "index.html";
 }
 
+/* NAV */
+function openMyBids(){
+  document.getElementById("items").style.display="none";
+  document.getElementById("myBidsPage").style.display="block";
+  renderMyBids();
+}
+
+/* LOAD */
 function loadItems(){
   fetch(SCRIPT_URL + "?items=1")
     .then(r=>r.json())
     .then(data=>{
       items = data;
       render();
-      checkOutbid();
     });
 }
 
+/* MAIN RENDER */
 function render(){
   const el = document.getElementById("items");
   el.innerHTML = "";
 
   items.forEach(item=>{
     const current = Number(item.current_bid || item.starting_bid || 0);
-    const increment = Number(item.bid_increment || 50);
-    const nextBid = current + increment;
+    const inc = Number(item.bid_increment || 50);
+    const next = current + inc;
 
-    const myBid = myBids[item.item_id];
-    let status = "";
-
-    if(myBid){
+    let status="";
+    if(myBids[item.item_id]){
       if(item.current_winner == bidder){
-        status = `<div class="statusWin">Winning</div>`;
+        status=`<div class="statusWin">Winning</div>`;
       }else{
-        status = `<div class="statusLose">Outbid</div>`;
+        status=`<div class="statusLose">Outbid</div>`;
       }
     }
 
     el.innerHTML += `
       <div class="card">
-
         <div class="cardLeft">
-          <div class="itemName">${item.item_name || "Item"}</div>
+          <div class="itemName">${item.item_name}</div>
           ${status}
           <div class="price">$${current}</div>
 
-          <button class="bidBtn" onclick="quickBid('${item.item_id}',${nextBid})">
-            Bid $${nextBid}
+          <button class="bidBtn" onclick="bid('${item.item_id}',${next})">
+            Bid $${next}
           </button>
 
           <div class="customBox">
             <div>Place Custom Bid</div>
-            <input id="input_${item.item_id}" placeholder="Enter amount">
-            <button onclick="customBid('${item.item_id}')">Submit Bid</button>
+            <input id="i_${item.item_id}">
+            <button onclick="custom('${item.item_id}')">Submit Bid</button>
           </div>
         </div>
 
         <div class="cardRight">
           ${item.image ? `<img src="${item.image}">` : ""}
         </div>
-
       </div>
     `;
   });
-
-  document.getElementById("myBids").innerText =
-    "My Bids: " + Object.keys(myBids).length;
 }
 
-function quickBid(itemId, amount){
-  sendBid(itemId, amount);
+/* MY BIDS PAGE */
+function renderMyBids(){
+  const el = document.getElementById("myBidsList");
+  el.innerHTML = "";
+
+  Object.keys(myBids).forEach(id=>{
+    const item = items.find(i=>i.item_id == id);
+    if(!item) return;
+
+    const status = item.current_winner == bidder
+      ? `<span class="statusWin">Winning</span>`
+      : `<span class="statusLose">Outbid</span>`;
+
+    el.innerHTML += `
+      <div class="bidItem">
+        <div>${item.item_name}</div>
+        <div>Your Bid: $${myBids[id]}</div>
+        <div>Current: $${item.current_bid}</div>
+        ${status}
+      </div>
+    `;
+  });
 }
 
-function customBid(itemId){
-  const val = document.getElementById("input_"+itemId).value;
-  sendBid(itemId, Number(val));
+/* BID */
+function bid(id,amount){
+  send(id,amount);
 }
 
-function sendBid(itemId, amount){
+function custom(id){
+  const val = document.getElementById("i_"+id).value;
+  send(id,Number(val));
+}
 
-  fetch(SCRIPT_URL, {
+function send(id,amount){
+  fetch(SCRIPT_URL,{
     method:"POST",
     body:new URLSearchParams({
       bid:1,
-      item_id:itemId,
+      item_id:id,
       bidder_id:bidder,
       bidder_name:name,
       amount:amount
@@ -224,30 +265,16 @@ function sendBid(itemId, amount){
   .then(r=>r.json())
   .then(res=>{
     if(res.success){
-      myBids[itemId] = amount;
+      myBids[id]=amount;
       showToast("Bid Submitted");
       loadItems();
     }else{
-      showToast(res.message || "Bid Failed");
-    }
-  })
-  .catch(()=>{
-    showToast("Network issue");
-  });
-}
-
-function checkOutbid(){
-  Object.keys(myBids).forEach(id=>{
-    const item = items.find(i=>i.item_id == id);
-    if(item && item.current_winner != bidder){
-      showToast("Outbid on " + item.item_name);
+      showToast("Bid Failed");
     }
   });
 }
 
-// refresh
-setInterval(loadItems, 4000);
-
+setInterval(loadItems,4000);
 loadItems();
 
 </script>
