@@ -10,21 +10,90 @@
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
 <style>
-body { font-family: Arial, sans-serif; }
+body{
+  font-family:'Poppins',sans-serif;
+  margin:0;
+  padding:20px;
+  text-align:center;
+  background:linear-gradient(135deg,#fff0f6,#ffe3ec);
+}
+
+.matchButton {
+  background: linear-gradient(135deg, #d63384, #ff4da6);
+  color: white;
+  margin: 10px auto;
+  padding: 18px;
+  border-radius: 12px;
+  max-width: 420px;
+  font-size: 22px;
+  font-weight: 600;
+  box-shadow: 0 10px 25px rgba(214,51,132,0.35);
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.matchButton:hover {
+  transform: scale(1.03);
+  box-shadow: 0 14px 30px rgba(214,51,132,0.5);
+}
+
+.matchButton:active {
+  transform: scale(0.97);
+}
+
+.mainCard{
+  background:white;
+  padding:30px;
+  border-radius:16px;
+  max-width:500px;
+  margin:auto;
+  box-shadow:0 15px 40px rgba(0,0,0,0.1);
+}
+
+h1{ color:#d63384; }
+
+.tableCard{
+  margin-top:30px;
+  padding:50px 20px;
+  background:linear-gradient(135deg,#d63384,#ff66a3);
+  color:white;
+  border-radius:18px;
+}
+
+.tableNumber{ font-size:120px; }
+.bidderNumber{ font-size:32px; }
+.welcomeName{ font-size:28px; }
+
+input{
+  padding:20px;
+  font-size:24px;
+  width:100%;
+  max-width:420px;
+  border-radius:10px;
+  box-sizing:border-box;
+  margin:0 auto;
+  display:block;
+}
+
+button{
+  margin-top:15px;
+  padding:18px;
+  font-size:22px;
+  width:100%;
+  background:#d63384;
+  color:white;
+  border:none;
+  border-radius:10px;
+}
+
+#status{
+  margin-top:15px;
+  font-size:18px;
+  font-weight:600;
+  color:#d63384;
+}
 </style>
-
-</head>
-
-<body>
-
-<h1>Guest Check-In</h1>
-
-<input id="searchInput" placeholder="Search guest name..." />
-
-<div id="status">Loading guests...</div>
-<div id="loading">Loading...</div>
-
-<div id="guestList"></div>
 
 <script>
 
