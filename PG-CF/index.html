@@ -1,6 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="icon" href="data:,">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Pink Gala Check-In</title>
+
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: #0b0b0b;
+  color: #fff;
+  margin: 0;
+  padding: 20px;
+}
+
+h1 {
+  text-align: center;
+  color: #00ff9c;
+}
+
+#searchInput {
+  width: 100%;
+  padding: 15px;
+  font-size: 18px;
+  margin-top: 20px;
+  border-radius: 10px;
+  border: none;
+}
+
+.matchButton {
+  background: #111;
+  border: 1px solid #00ff9c;
+  padding: 15px;
+  margin-top: 10px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.matchButton:hover {
+  background: #00ff9c;
+  color: #000;
+}
+
+.tableCard {
+  margin-top: 20px;
+  padding: 20px;
+  border-radius: 15px;
+  background: #111;
+  text-align: center;
+}
+
+.welcomeName {
+  font-size: 28px;
+  margin-bottom: 10px;
+}
+
+.tableNumber {
+  font-size: 22px;
+}
+
+.bidderNumber {
+  font-size: 18px;
+  margin-top: 10px;
+}
+
+button {
+  margin-top: 20px;
+  padding: 15px;
+  font-size: 18px;
+  border: none;
+  border-radius: 10px;
+  background: #00ff9c;
+  color: #000;
+  cursor: pointer;
+}
+
+#status {
+  margin-top: 10px;
+  color: #aaa;
+}
+</style>
+</head>
+
+<body>
+
+<h1>Guest Check-In</h1>
+
+<input id="searchInput" placeholder="Search guest name..." />
+
+<div id="status">Loading guests...</div>
+<div id="loading">Loading...</div>
+
+<div id="guestList"></div>
+
 <script>
 
-// ✅ DIRECT GAS URL (NOT WORKER)
+// 🔥 YOUR GAS URL
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzFeVWBQvxbh8AvC0HtN3wbcXga31CmbfeYef1opsgkc98omqTSjhaTANB5fw9e3-8N/exec";
 
 let guestList = [];
@@ -11,19 +110,30 @@ const checkedInSet = new Set();
 let queue = [];
 let timer = null;
 
-/* LOAD */
+/* LOAD GUESTS FROM GAS */
 function loadGuests() {
-  guestList = GUESTS.map((g,i)=>({
-    id:String(g.id ?? (i + 1)),
-    name:g.name,
-    bidder:g.bidder,
-    table:g.table
-  }));
 
-  guestList.forEach(g=>guestMap[g.id]=g);
+  fetch(SCRIPT_URL + "?guests=1")
+    .then(res => res.json())
+    .then(data => {
 
-  document.getElementById("loading").style.display="none";
-  document.getElementById("status").innerText="Start typing name";
+      guestList = data.map((g,i)=>({
+        id:String(g.id ?? (i + 1)),
+        name:g.name || "",
+        bidder:g.bidder || "",
+        table:g.table || ""
+      }));
+
+      guestList.forEach(g=>guestMap[g.id]=g);
+
+      document.getElementById("loading").style.display="none";
+      document.getElementById("status").innerText="Start typing name";
+
+    })
+    .catch(err => {
+      console.error("Guest load failed", err);
+      document.getElementById("status").innerText="Error loading guests";
+    });
 }
 
 /* SEARCH */
@@ -58,11 +168,10 @@ function handleCheckIn(id){
   const guest = guestMap[id];
   if (!guest) return;
 
-  // ✅ INSTANT UI
   document.getElementById("guestList").innerHTML=`
     <div class="tableCard">
       <div class="welcomeName">${guest.name}</div>
-      <div class="tableNumber">${guest.table||"-"}</div>
+      <div class="tableNumber">Table: ${guest.table||"-"}</div>
       <div class="bidderNumber">Bidder #${guest.bidder||"-"}</div>
 
       <div style="margin-top:15px;font-size:20px;">
@@ -87,7 +196,7 @@ function handleCheckIn(id){
   }
 }
 
-/* SEND */
+/* SEND TO GAS */
 function sendBatch() {
 
   if (queue.length === 0) return;
@@ -102,7 +211,7 @@ function sendBatch() {
 
   fetch(SCRIPT_URL, {
     method: "POST",
-    mode: "no-cors", // 🔥 CORS FIX
+    mode: "no-cors",
     body: new URLSearchParams({
       ids: JSON.stringify(batch)
     })
@@ -111,7 +220,7 @@ function sendBatch() {
   console.log("BATCH SENT:", batch.length);
 }
 
-/* NAV */
+/* NAVIGATION */
 function enterAuction(name,bidder,table){
   window.location.href=`auctionNEW.html?name=${encodeURIComponent(name)}&bidder=${bidder}&table=${table}`;
 }
@@ -123,3 +232,6 @@ window.onload=()=>{
 };
 
 </script>
+
+</body>
+</html>
