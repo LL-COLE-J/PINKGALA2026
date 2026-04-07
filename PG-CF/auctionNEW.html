@@ -1,281 +1,166 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>2026 Pink Gala Auction</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Auction</title>
 
 <style>
-body{
-  font-family: Arial;
-  background:#0b0b0b;
-  color:#fff;
-  margin:0;
-  padding:10px;
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f5f5f5;
 }
 
-/* HEADER */
-.header{
-  text-align:center;
-  color:#d63384;
-  font-size:22px;
-  margin-bottom:10px;
+header {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px;
+  background: #fff;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
 }
 
-/* TOP BUTTONS */
-.topBar{
-  display:flex;
-  justify-content:space-between;
-  margin-bottom:10px;
+button {
+  padding: 10px 14px;
+  border: none;
+  border-radius: 8px;
+  background: #e0e0e0;
+  cursor: pointer;
+  font-weight: bold;
 }
 
-.topBtn{
-  background:#111;
-  border:1px solid #00ff9c;
-  color:#00ff9c;
-  padding:8px 14px;
-  border-radius:8px;
-  cursor:pointer;
+button.primary {
+  background: #007bff;
+  color: white;
 }
 
-/* CARD */
-.card{
-  background:#111;
-  border-radius:12px;
-  padding:15px;
-  margin-bottom:12px;
-  display:flex;
-  gap:10px;
-  border:1px solid #00ff9c;
+.container {
+  padding: 12px;
 }
 
-.cardLeft{ flex:1; }
-
-.cardRight img{
-  width:90px;
-  height:90px;
-  object-fit:cover;
-  border-radius:8px;
+.item {
+  background: white;
+  margin-bottom: 12px;
+  padding: 12px;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
 }
 
-.itemName{ font-size:18px; }
-.price{ font-size:32px; }
-
-.bidBtn{
-  width:100%;
-  padding:12px;
-  background:#00ff9c;
-  border:none;
-  border-radius:8px;
-  font-size:18px;
-  margin-bottom:8px;
+.item h3 {
+  margin: 0 0 6px;
 }
 
-.customBox{
-  text-align:center;
+.bid {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.customBox input{
-  width:90%;
-  padding:10px;
-  margin-bottom:8px;
+.hidden {
+  display: none;
 }
 
-.customBox button{
-  width:90%;
-  padding:10px;
-}
-
-.statusWin{ color:#00ff9c; }
-.statusLose{ color:#ff4d4d; }
-
-/* MY BIDS PAGE */
-#myBidsPage{
-  display:none;
-}
-
-.bidItem{
-  border:1px solid #00ff9c;
-  padding:10px;
-  margin-bottom:10px;
-  border-radius:8px;
-}
-
-.toast{
-  position:fixed;
-  bottom:20px;
-  left:50%;
-  transform:translateX(-50%);
-  background:#111;
-  color:#00ff9c;
-  padding:10px 20px;
-  border-radius:8px;
-  display:none;
-}
 </style>
 </head>
 
 <body>
 
-<div class="header">2026 Pink Gala Auction</div>
+<header>
+  <button onclick="goHome()">Home</button>
+  <button onclick="showMyBids()">My Bids</button>
+</header>
 
-<div class="topBar">
-  <div class="topBtn" onclick="goHome()">🏠 Home</div>
-  <div class="topBtn" onclick="openMyBids()">📊 My Bids</div>
-</div>
-
-<div id="items"></div>
-
-<!-- MY BIDS PAGE -->
-<div id="myBidsPage">
-  <h3>My Bids</h3>
-  <div id="myBidsList"></div>
-</div>
-
-<div id="toast" class="toast"></div>
+<div class="container" id="auctionView"></div>
+<div class="container hidden" id="myBidsView"></div>
 
 <script>
 
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzFeVWBQvxbh8AvC0HtN3wbcXga31CmbfeYef1opsgkc98omqTSjhaTANB5fw9e3-8N/exec";
+const API_URL = "YOUR_API_ENDPOINT";
+let USER_ID = new URLSearchParams(window.location.search).get("bidder") || "guest";
 
-let items = [];
-let myBids = {};
-
-const params = new URLSearchParams(window.location.search);
-const bidder = params.get("bidder");
-const name = params.get("name");
-
-function showToast(msg){
-  const t = document.getElementById("toast");
-  t.innerText = msg;
-  t.style.display = "block";
-  setTimeout(()=>t.style.display="none",2000);
+async function fetchItems() {
+  const res = await fetch(API_URL + "?action=getItems");
+  return await res.json();
 }
 
-function goHome(){
-  window.location.href = "index.html";
+async function fetchMyBids() {
+  const res = await fetch(API_URL + `?action=myBids&user=${USER_ID}`);
+  return await res.json();
 }
 
-/* NAV */
-function openMyBids(){
-  document.getElementById("items").style.display="none";
-  document.getElementById("myBidsPage").style.display="block";
-  renderMyBids();
+async function placeBid(itemId, amount) {
+  await fetch(API_URL, {
+    method: "POST",
+    body: JSON.stringify({ action: "bid", itemId, amount, user: USER_ID })
+  });
+  loadAuction();
 }
 
-/* LOAD */
-function loadItems(){
-  fetch(SCRIPT_URL + "?items=1")
-    .then(r=>r.json())
-    .then(data=>{
-      items = data;
-      render();
-    });
-}
+function renderItems(items) {
+  const container = document.getElementById("auctionView");
+  container.innerHTML = "";
 
-/* MAIN RENDER */
-function render(){
-  const el = document.getElementById("items");
-  el.innerHTML = "";
+  items.forEach(item => {
+    const el = document.createElement("div");
+    el.className = "item";
 
-  items.forEach(item=>{
-    const current = Number(item.current_bid || item.starting_bid || 0);
-    const inc = Number(item.bid_increment || 50);
-    const next = current + inc;
-
-    let status="";
-    if(myBids[item.item_id]){
-      if(item.current_winner == bidder){
-        status=`<div class="statusWin">Winning</div>`;
-      }else{
-        status=`<div class="statusLose">Outbid</div>`;
-      }
-    }
-
-    el.innerHTML += `
-      <div class="card">
-        <div class="cardLeft">
-          <div class="itemName">${item.item_name}</div>
-          ${status}
-          <div class="price">$${current}</div>
-
-          <button class="bidBtn" onclick="bid('${item.item_id}',${next})">
-            Bid $${next}
-          </button>
-
-          <div class="customBox">
-            <div>Place Custom Bid</div>
-            <input id="i_${item.item_id}">
-            <button onclick="custom('${item.item_id}')">Submit Bid</button>
-          </div>
-        </div>
-
-        <div class="cardRight">
-  ${item.image ? `
-    <a href="${item.image}" target="_blank">
-      <img src="${item.image}" onerror="this.style.display='none'">
-    </a>
-  ` : ""}
-</div>
-
-/* MY BIDS PAGE */
-function renderMyBids(){
-  const el = document.getElementById("myBidsList");
-  el.innerHTML = "";
-
-  Object.keys(myBids).forEach(id=>{
-    const item = items.find(i=>i.item_id == id);
-    if(!item) return;
-
-    const status = item.current_winner == bidder
-      ? `<span class="statusWin">Winning</span>`
-      : `<span class="statusLose">Outbid</span>`;
-
-    el.innerHTML += `
-      <div class="bidItem">
-        <div>${item.item_name}</div>
-        <div>Your Bid: $${myBids[id]}</div>
-        <div>Current: $${item.current_bid}</div>
-        ${status}
+    el.innerHTML = `
+      <h3>${item.name}</h3>
+      <p>${item.description || ""}</p>
+      <div class="bid">
+        <span>Current: $${item.currentBid}</span>
+        <button onclick="bidPrompt(${item.id}, ${item.currentBid})">Bid</button>
       </div>
     `;
+
+    container.appendChild(el);
   });
 }
 
-/* BID */
-function bid(id,amount){
-  send(id,amount);
-}
+function renderMyBids(bids) {
+  const container = document.getElementById("myBidsView");
+  container.innerHTML = '<button onclick="loadAuction()">All Bids</button>';
 
-function custom(id){
-  const val = document.getElementById("i_"+id).value;
-  send(id,Number(val));
-}
+  bids.forEach(b => {
+    const el = document.createElement("div");
+    el.className = "item";
 
-function send(id,amount){
-  fetch(SCRIPT_URL,{
-    method:"POST",
-    body:new URLSearchParams({
-      bid:1,
-      item_id:id,
-      bidder_id:bidder,
-      bidder_name:name,
-      amount:amount
-    })
-  })
-  .then(r=>r.json())
-  .then(res=>{
-    if(res.success){
-      myBids[id]=amount;
-      showToast("Bid Submitted");
-      loadItems();
-    }else{
-      showToast("Bid Failed");
-    }
+    el.innerHTML = `
+      <h3>${b.name}</h3>
+      <p>Your Bid: $${b.amount}</p>
+    `;
+
+    container.appendChild(el);
   });
 }
 
-setInterval(loadItems,4000);
-loadItems();
+function bidPrompt(itemId, current) {
+  const amount = prompt("Enter bid amount", current + 5);
+  if (!amount) return;
+  placeBid(itemId, Number(amount));
+}
+
+async function loadAuction() {
+  document.getElementById("auctionView").classList.remove("hidden");
+  document.getElementById("myBidsView").classList.add("hidden");
+
+  const items = await fetchItems();
+  renderItems(items);
+}
+
+async function showMyBids() {
+  document.getElementById("auctionView").classList.add("hidden");
+  document.getElementById("myBidsView").classList.remove("hidden");
+
+  const bids = await fetchMyBids();
+  renderMyBids(bids);
+}
+
+function goHome() {
+  loadAuction();
+}
+
+loadAuction();
 
 </script>
 
