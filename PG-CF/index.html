@@ -183,7 +183,12 @@ function handleCheckIn(id){
   }
 
   // ✅ BACKEND CALL (UNCHANGED LOGIC)
-  fetch(`${SCRIPT_URL}?ids=${encodeURIComponent(JSON.stringify([id]))}`)
+ fetch(SCRIPT_URL, {
+  method: "POST",
+  body: new URLSearchParams({
+    ids: JSON.stringify([id])
+  })
+})
     .then(res => res.text())
     .then(res => console.log("CHECK-IN RESPONSE:", res))
     .catch(err => console.error("CHECK-IN ERROR:", err));
