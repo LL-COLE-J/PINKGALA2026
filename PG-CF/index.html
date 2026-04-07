@@ -9,20 +9,43 @@
 
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
+<style>
+body { font-family: Arial, sans-serif; }
+</style>
+
+</head>
+
+<body>
+
+<h1>Guest Check-In</h1>
+
+<input id="searchInput" placeholder="Search guest name..." />
+
+<div id="status">Loading guests...</div>
+<div id="loading">Loading...</div>
+
+<div id="guestList"></div>
+
 <script>
 
-// FORCE GLOBAL (KEY FIX)
+// =========================
+// GLOBAL STATE
+// =========================
 window.SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzFeVWBQvxbh8AvC0HtN3wbcXga31CmbfeYef1opsgkc98omqTSjhaTANB5fw9e3-8N/exec";
 
 window.guestList = [];
 window.guestMap = {};
 window.checkedInSet = new Set();
 
+// 🔥 RELIABLE QUEUE
 window.queue = [];
+window.inFlight = [];
 window.timer = null;
 window.sending = false;
 
-/* LOAD */
+// =========================
+// LOAD GUESTS
+// =========================
 window.loadGuests = function() {
 
   fetch(SCRIPT_URL + "?guests=1")
@@ -31,15 +54,16 @@ window.loadGuests = function() {
 
       guestList = data.map((g,i)=>({
         id:String(g.id ?? (i + 1)),
-        name:g.name,
-        bidder:g.bidder,
-        table:g.table
+        name:g.name || "",
+        bidder:g.bidder || "",
+        table:g.table || ""
       }));
 
       guestList.forEach(g=>guestMap[g.id]=g);
 
       document.getElementById("loading").style.display="none";
       document.getElementById("status").innerText="Start typing name";
+
     })
     .catch(err => {
       console.error("Guest load failed", err);
@@ -47,8 +71,11 @@ window.loadGuests = function() {
     });
 };
 
-/* SEARCH */
+// =========================
+// SEARCH
+// =========================
 window.handleSearch = function(e){
+
   const term=e.target.value.toLowerCase().trim();
   const container=document.getElementById("guestList");
   container.innerHTML="";
@@ -70,7 +97,9 @@ window.handleSearch = function(e){
   document.getElementById("status").innerText=`${results.length} match(es)`;
 };
 
-/* CHECK-IN */
+// =========================
+// CHECK-IN
+// =========================
 window.handleCheckIn = function(id){
 
   if(checkedInSet.has(id)) return;
@@ -99,26 +128,39 @@ window.handleCheckIn = function(id){
 
   queue.push(id);
 
-  scheduleSend();
+  startQueue();
 };
 
-/* SCHEDULER */
-window.scheduleSend = function() {
+// =========================
+// QUEUE ENGINE
+// =========================
+function startQueue() {
+  if (!timer) {
+    timer = setInterval(processQueue, 700); // tuned for GAS
+  }
+}
+
+function processQueue() {
+
   if (sending) return;
 
-  if (!timer) {
-    timer = setTimeout(processQueue, 600);
+  if (queue.length === 0 && inFlight.length === 0) {
+    clearInterval(timer);
+    timer = null;
+    return;
   }
-};
-
-/* PROCESS */
-window.processQueue = function() {
-
-  if (queue.length === 0) return;
 
   sending = true;
 
-  const batch = queue.splice(0, 25);
+  let batch;
+
+  // retry first
+  if (inFlight.length > 0) {
+    batch = inFlight.shift();
+    console.log("RETRYING:", batch.length);
+  } else {
+    batch = queue.splice(0, 20);
+  }
 
   fetch(SCRIPT_URL, {
     method: "POST",
@@ -128,30 +170,28 @@ window.processQueue = function() {
     })
   })
   .then(() => {
-    console.log("BATCH SENT:", batch.length);
+    console.log("SENT:", batch.length);
   })
   .catch(() => {
-    console.log("RETRYING BATCH");
-    queue = batch.concat(queue);
+    console.log("FAILED → REQUEUE");
+    inFlight.push(batch);
   })
   .finally(() => {
     sending = false;
-
-    if (queue.length > 0) {
-      setTimeout(processQueue, 300);
-    }
   });
+}
 
-  timer = null;
-};
-
-/* NAV */
+// =========================
+// NAV
+// =========================
 window.enterAuction = function(name,bidder,table){
   window.location.href=`auctionNEW.html?name=${encodeURIComponent(name)}&bidder=${bidder}&table=${table}`;
 };
 
-/* INIT */
-window.onload = function(){
+// =========================
+// INIT
+// =========================
+window.onload=()=>{
   loadGuests();
   document.getElementById("searchInput").addEventListener("input",handleSearch);
 };
