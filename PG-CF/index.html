@@ -9,45 +9,21 @@
 
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
-<style>
-/* KEEPING THIS MINIMAL SO IT DOESN’T OVERRIDE YOUR ORIGINAL STYLE IF YOU HAD ONE */
-body { font-family: Arial, sans-serif; }
-</style>
-
-</head>
-
-<body>
-
-<h1>Guest Check-In</h1>
-
-<input id="searchInput" placeholder="Search guest name..." />
-
-<div id="status">Loading guests...</div>
-<div id="loading">Loading...</div>
-
-<div id="guestList"></div>
-
 <script>
 
-// =========================
-// CONFIG
-// =========================
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzFeVWBQvxbh8AvC0HtN3wbcXga31CmbfeYef1opsgkc98omqTSjhaTANB5fw9e3-8N/exec";
+// FORCE GLOBAL (KEY FIX)
+window.SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzFeVWBQvxbh8AvC0HtN3wbcXga31CmbfeYef1opsgkc98omqTSjhaTANB5fw9e3-8N/exec";
 
-// =========================
-// STATE
-// =========================
-let guestList = [];
-const guestMap = {};
-const checkedInSet = new Set();
+window.guestList = [];
+window.guestMap = {};
+window.checkedInSet = new Set();
 
-let queue = [];
-let timer = null;
+window.queue = [];
+window.timer = null;
+window.sending = false;
 
-// =========================
-// LOAD GUESTS (GAS)
-// =========================
-function loadGuests() {
+/* LOAD */
+window.loadGuests = function() {
 
   fetch(SCRIPT_URL + "?guests=1")
     .then(res => res.json())
@@ -55,66 +31,59 @@ function loadGuests() {
 
       guestList = data.map((g,i)=>({
         id:String(g.id ?? (i + 1)),
-        name:g.name || "",
-        bidder:g.bidder || "",
-        table:g.table || ""
+        name:g.name,
+        bidder:g.bidder,
+        table:g.table
       }));
 
       guestList.forEach(g=>guestMap[g.id]=g);
 
       document.getElementById("loading").style.display="none";
       document.getElementById("status").innerText="Start typing name";
-
     })
     .catch(err => {
       console.error("Guest load failed", err);
       document.getElementById("status").innerText="Error loading guests";
     });
-}
+};
 
-// =========================
-// SEARCH
-// =========================
-function handleSearch(e){
+/* SEARCH */
+window.handleSearch = function(e){
+  const term=e.target.value.toLowerCase().trim();
+  const container=document.getElementById("guestList");
+  container.innerHTML="";
 
-  const term = e.target.value.toLowerCase().trim();
-  const container = document.getElementById("guestList");
+  if(!term) return;
 
-  container.innerHTML = "";
-
-  if (!term) return;
-
-  const results = guestList
-    .filter(g => g.name.toLowerCase().includes(term))
+  const results=guestList
+    .filter(g=>g.name.toLowerCase().includes(term))
     .slice(0,10);
 
-  results.forEach(g => {
-    const div = document.createElement("div");
-    div.className = "matchButton";
-    div.innerText = g.name;
-    div.onclick = () => handleCheckIn(g.id);
+  results.forEach(g=>{
+    const div=document.createElement("div");
+    div.className="matchButton";
+    div.innerText=g.name;
+    div.onclick=()=>handleCheckIn(g.id);
     container.appendChild(div);
   });
 
-  document.getElementById("status").innerText = results.length + " match(es)";
-}
+  document.getElementById("status").innerText=`${results.length} match(es)`;
+};
 
-// =========================
-// CHECK-IN
-// =========================
-function handleCheckIn(id){
+/* CHECK-IN */
+window.handleCheckIn = function(id){
 
-  if (checkedInSet.has(id)) return;
+  if(checkedInSet.has(id)) return;
   checkedInSet.add(id);
 
   const guest = guestMap[id];
   if (!guest) return;
 
-  document.getElementById("guestList").innerHTML = `
+  document.getElementById("guestList").innerHTML=`
     <div class="tableCard">
       <div class="welcomeName">${guest.name}</div>
-      <div class="tableNumber">${guest.table || "-"}</div>
-      <div class="bidderNumber">Bidder #${guest.bidder || "-"}</div>
+      <div class="tableNumber">${guest.table||"-"}</div>
+      <div class="bidderNumber">Bidder #${guest.bidder||"-"}</div>
 
       <div style="margin-top:15px;font-size:20px;">
         ✅ Checked In
@@ -126,31 +95,30 @@ function handleCheckIn(id){
     </div>
   `;
 
-  confetti({ particleCount:60, spread:70, origin:{ y:0.6 } });
+  confetti({particleCount:60,spread:70,origin:{y:0.6}});
 
   queue.push(id);
 
-  if (queue.length >= 20) sendBatch();
+  scheduleSend();
+};
+
+/* SCHEDULER */
+window.scheduleSend = function() {
+  if (sending) return;
 
   if (!timer) {
-    timer = setTimeout(sendBatch, 400);
+    timer = setTimeout(processQueue, 600);
   }
-}
+};
 
-// =========================
-// SEND BATCH
-// =========================
-function sendBatch() {
+/* PROCESS */
+window.processQueue = function() {
 
   if (queue.length === 0) return;
 
-  const batch = [...queue];
-  queue = [];
+  sending = true;
 
-  if (timer) {
-    clearTimeout(timer);
-    timer = null;
-  }
+  const batch = queue.splice(0, 25);
 
   fetch(SCRIPT_URL, {
     method: "POST",
@@ -158,29 +126,34 @@ function sendBatch() {
     body: new URLSearchParams({
       ids: JSON.stringify(batch)
     })
+  })
+  .then(() => {
+    console.log("BATCH SENT:", batch.length);
+  })
+  .catch(() => {
+    console.log("RETRYING BATCH");
+    queue = batch.concat(queue);
+  })
+  .finally(() => {
+    sending = false;
+
+    if (queue.length > 0) {
+      setTimeout(processQueue, 300);
+    }
   });
 
-  console.log("BATCH SENT:", batch.length);
-}
+  timer = null;
+};
 
-// =========================
-// NAV
-// =========================
-function enterAuction(name,bidder,table){
-  window.location.href =
-    "auctionNEW.html?name=" + encodeURIComponent(name) +
-    "&bidder=" + bidder +
-    "&table=" + table;
-}
+/* NAV */
+window.enterAuction = function(name,bidder,table){
+  window.location.href=`auctionNEW.html?name=${encodeURIComponent(name)}&bidder=${bidder}&table=${table}`;
+};
 
-// =========================
-// INIT
-// =========================
-window.onload = () => {
+/* INIT */
+window.onload = function(){
   loadGuests();
-  document
-    .getElementById("searchInput")
-    .addEventListener("input", handleSearch);
+  document.getElementById("searchInput").addEventListener("input",handleSearch);
 };
 
 </script>
