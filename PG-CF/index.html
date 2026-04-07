@@ -257,6 +257,13 @@ function processQueue() {
   });
 }
 
+  // =========================
+// NAV
+// =========================
+window.enterAuction = function(name,bidder,table){
+  window.location.href = `auctionNEW.html?name=${encodeURIComponent(name)}&bidder=${bidder}&table=${table}`;
+};
+
 // =========================
 // INIT
 // =========================
