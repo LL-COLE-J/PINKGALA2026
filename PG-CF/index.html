@@ -120,7 +120,7 @@ button{
 <script>
 
 // ✅ YOUR LIVE WEB APP URL
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwjcBzFLO9XFpkWhbTLaRdG4DqpAbrvmnEPc9EwwG6eTwfG73UTQGZD2-U10aeUCV-6/exec";
+const SCRIPT_URL = "https://mute-fog-a9af.llcolej8.workers.dev";
 
 let guestList = [];
 const guestMap = {};
@@ -172,14 +172,11 @@ function handleCheckIn(id){
 
   const guest = guestMap[id];
 
-  // ✅ CORRECT BACKEND CALL
-  navigator.sendBeacon(
-    SCRIPT_URL + "?action=checkin",
-    new URLSearchParams({
-      ids: JSON.stringify([id]),
-      names: JSON.stringify([guest.name])
-    })
-  );
+  // ✅ CORRECT CALL (MATCHES BACKEND)
+  fetch(`${SCRIPT_URL}?ids=${encodeURIComponent(JSON.stringify([id]))}`)
+    .then(res => res.text())
+    .then(res => console.log("CHECK-IN RESPONSE:", res))
+    .catch(err => console.error("CHECK-IN ERROR:", err));
 
   document.getElementById("guestList").innerHTML=`
     <div class="tableCard">
