@@ -10,80 +10,10 @@
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
 <style>
-body {
-  font-family: Arial, sans-serif;
-  background: #0b0b0b;
-  color: #fff;
-  margin: 0;
-  padding: 20px;
-}
-
-h1 {
-  text-align: center;
-  color: #00ff9c;
-}
-
-#searchInput {
-  width: 100%;
-  padding: 15px;
-  font-size: 18px;
-  margin-top: 20px;
-  border-radius: 10px;
-  border: none;
-}
-
-.matchButton {
-  background: #111;
-  border: 1px solid #00ff9c;
-  padding: 15px;
-  margin-top: 10px;
-  border-radius: 10px;
-  cursor: pointer;
-}
-
-.matchButton:hover {
-  background: #00ff9c;
-  color: #000;
-}
-
-.tableCard {
-  margin-top: 20px;
-  padding: 20px;
-  border-radius: 15px;
-  background: #111;
-  text-align: center;
-}
-
-.welcomeName {
-  font-size: 28px;
-  margin-bottom: 10px;
-}
-
-.tableNumber {
-  font-size: 22px;
-}
-
-.bidderNumber {
-  font-size: 18px;
-  margin-top: 10px;
-}
-
-button {
-  margin-top: 20px;
-  padding: 15px;
-  font-size: 18px;
-  border: none;
-  border-radius: 10px;
-  background: #00ff9c;
-  color: #000;
-  cursor: pointer;
-}
-
-#status {
-  margin-top: 10px;
-  color: #aaa;
-}
+/* KEEPING THIS MINIMAL SO IT DOESN’T OVERRIDE YOUR ORIGINAL STYLE IF YOU HAD ONE */
+body { font-family: Arial, sans-serif; }
 </style>
+
 </head>
 
 <body>
@@ -99,18 +29,24 @@ button {
 
 <script>
 
-// 🔥 YOUR GAS URL
+// =========================
+// CONFIG
+// =========================
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzFeVWBQvxbh8AvC0HtN3wbcXga31CmbfeYef1opsgkc98omqTSjhaTANB5fw9e3-8N/exec";
 
+// =========================
+// STATE
+// =========================
 let guestList = [];
 const guestMap = {};
 const checkedInSet = new Set();
 
-// 🔥 QUEUE SYSTEM
 let queue = [];
 let timer = null;
 
-/* LOAD GUESTS FROM GAS */
+// =========================
+// LOAD GUESTS (GAS)
+// =========================
 function loadGuests() {
 
   fetch(SCRIPT_URL + "?guests=1")
@@ -136,43 +72,49 @@ function loadGuests() {
     });
 }
 
-/* SEARCH */
+// =========================
+// SEARCH
+// =========================
 function handleSearch(e){
-  const term=e.target.value.toLowerCase().trim();
-  const container=document.getElementById("guestList");
-  container.innerHTML="";
 
-  if(!term) return;
+  const term = e.target.value.toLowerCase().trim();
+  const container = document.getElementById("guestList");
 
-  const results=guestList
-    .filter(g=>g.name.toLowerCase().includes(term))
+  container.innerHTML = "";
+
+  if (!term) return;
+
+  const results = guestList
+    .filter(g => g.name.toLowerCase().includes(term))
     .slice(0,10);
 
-  results.forEach(g=>{
-    const div=document.createElement("div");
-    div.className="matchButton";
-    div.innerText=g.name;
-    div.onclick=()=>handleCheckIn(g.id);
+  results.forEach(g => {
+    const div = document.createElement("div");
+    div.className = "matchButton";
+    div.innerText = g.name;
+    div.onclick = () => handleCheckIn(g.id);
     container.appendChild(div);
   });
 
-  document.getElementById("status").innerText=`${results.length} match(es)`;
+  document.getElementById("status").innerText = results.length + " match(es)";
 }
 
-/* CHECK-IN */
+// =========================
+// CHECK-IN
+// =========================
 function handleCheckIn(id){
 
-  if(checkedInSet.has(id)) return;
+  if (checkedInSet.has(id)) return;
   checkedInSet.add(id);
 
   const guest = guestMap[id];
   if (!guest) return;
 
-  document.getElementById("guestList").innerHTML=`
+  document.getElementById("guestList").innerHTML = `
     <div class="tableCard">
       <div class="welcomeName">${guest.name}</div>
-      <div class="tableNumber">Table: ${guest.table||"-"}</div>
-      <div class="bidderNumber">Bidder #${guest.bidder||"-"}</div>
+      <div class="tableNumber">${guest.table || "-"}</div>
+      <div class="bidderNumber">Bidder #${guest.bidder || "-"}</div>
 
       <div style="margin-top:15px;font-size:20px;">
         ✅ Checked In
@@ -184,9 +126,8 @@ function handleCheckIn(id){
     </div>
   `;
 
-  confetti({particleCount:60,spread:70,origin:{y:0.6}});
+  confetti({ particleCount:60, spread:70, origin:{ y:0.6 } });
 
-  // 🔥 QUEUE
   queue.push(id);
 
   if (queue.length >= 20) sendBatch();
@@ -196,7 +137,9 @@ function handleCheckIn(id){
   }
 }
 
-/* SEND TO GAS */
+// =========================
+// SEND BATCH
+// =========================
 function sendBatch() {
 
   if (queue.length === 0) return;
@@ -220,15 +163,24 @@ function sendBatch() {
   console.log("BATCH SENT:", batch.length);
 }
 
-/* NAVIGATION */
+// =========================
+// NAV
+// =========================
 function enterAuction(name,bidder,table){
-  window.location.href=`auctionNEW.html?name=${encodeURIComponent(name)}&bidder=${bidder}&table=${table}`;
+  window.location.href =
+    "auctionNEW.html?name=" + encodeURIComponent(name) +
+    "&bidder=" + bidder +
+    "&table=" + table;
 }
 
-/* INIT */
-window.onload=()=>{
+// =========================
+// INIT
+// =========================
+window.onload = () => {
   loadGuests();
-  document.getElementById("searchInput").addEventListener("input",handleSearch);
+  document
+    .getElementById("searchInput")
+    .addEventListener("input", handleSearch);
 };
 
 </script>
