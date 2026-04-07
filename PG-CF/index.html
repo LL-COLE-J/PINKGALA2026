@@ -126,7 +126,7 @@ let guestList = [];
 const guestMap = {};
 const checkedInSet = new Set();
 
-// 🔥 QUEUE SYSTEM (NEW)
+// 🔥 GLOBAL QUEUE SYSTEM
 let queue = [];
 let timer = null;
 
@@ -168,49 +168,22 @@ function handleSearch(e){
   document.getElementById("status").innerText=`${results.length} match(es)`;
 }
 
-/* 🔥 CHECK-IN (OPTIMIZED) */
+/* 🔥 CHECK-IN (FINAL SYSTEM) */
 function handleCheckIn(id){
 
   if(checkedInSet.has(id)) return;
   checkedInSet.add(id);
 
-  let guest = guestMap[id] || guestList.find(g => String(g.id) === String(id));
+  const guest = guestMap[id];
   if (!guest) return;
 
-  // 🔥 ADD TO QUEUE
-  queue.push(id);
-
-  // 🔥 BATCH SEND
-  if (!timer) {
-    timer = setTimeout(() => {
-
-      const batch = [...queue];
-      queue = [];
-      timer = null;
-
-      fetch(SCRIPT_URL, {
-        method: "POST",
-        body: new URLSearchParams({
-          ids: JSON.stringify(batch)
-        })
-      })
-      .then(res => res.text())
-      .then(res => console.log("BATCH SENT:", batch))
-      .catch(err => console.error("BATCH ERROR:", err));
-
-    }, 200);
-  }
-
-  // ✅ UI (UNCHANGED)
+  // ✅ INSTANT UI (UNCHANGED)
   document.getElementById("guestList").innerHTML=`
     <div class="tableCard">
       <div class="welcomeName">${guest.name}</div>
       <div class="tableNumber">${guest.table||"-"}</div>
       <div class="bidderNumber">Bidder #${guest.bidder||"-"}</div>
-
-      <div style="margin-top:15px;font-size:20px;">
-        ✅ Checked In
-      </div>
+      <div style="margin-top:15px;font-size:20px;">✅ Checked In</div>
 
       <button onclick='enterAuction(${JSON.stringify(guest.name)}, ${JSON.stringify(guest.bidder)}, ${JSON.stringify(guest.table)})'>
         Enter Auction Starting Bid
@@ -219,6 +192,43 @@ function handleCheckIn(id){
   `;
 
   confetti({particleCount:60,spread:70,origin:{y:0.6}});
+
+  // 🔥 ADD TO QUEUE
+  queue.push(id);
+
+  // 🔥 SEND IF LARGE ENOUGH
+  if (queue.length >= 20) {
+    sendBatch();
+    return;
+  }
+
+  // 🔥 OR TIME-BASED SEND
+  if (!timer) {
+    timer = setTimeout(sendBatch, 400);
+  }
+}
+
+/* 🔥 BATCH SENDER */
+function sendBatch() {
+
+  if (queue.length === 0) return;
+
+  const batch = [...queue];
+  queue = [];
+
+  if (timer) {
+    clearTimeout(timer);
+    timer = null;
+  }
+
+  fetch(SCRIPT_URL, {
+    method: "POST",
+    body: new URLSearchParams({
+      ids: JSON.stringify(batch)
+    })
+  })
+  .then(() => console.log("BATCH SENT:", batch.length))
+  .catch(err => console.error("BATCH ERROR:", err));
 }
 
 /* NAV */
