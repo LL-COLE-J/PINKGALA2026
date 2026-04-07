@@ -170,14 +170,25 @@ function handleCheckIn(id){
   if(checkedInSet.has(id)) return;
   checkedInSet.add(id);
 
-  const guest = guestMap[id];
+  // ✅ HARD FIX: fallback lookup (prevents undefined guest)
+  let guest = guestMap[id];
 
-  // ✅ CORRECT CALL (MATCHES BACKEND)
+  if (!guest) {
+    guest = guestList.find(g => String(g.id) === String(id));
+  }
+
+  if (!guest) {
+    console.error("Guest lookup failed:", id);
+    return;
+  }
+
+  // ✅ BACKEND CALL (UNCHANGED LOGIC)
   fetch(`${SCRIPT_URL}?ids=${encodeURIComponent(JSON.stringify([id]))}`)
     .then(res => res.text())
     .then(res => console.log("CHECK-IN RESPONSE:", res))
     .catch(err => console.error("CHECK-IN ERROR:", err));
 
+  // ✅ UI (RESTORED)
   document.getElementById("guestList").innerHTML=`
     <div class="tableCard">
       <div class="welcomeName">${guest.name}</div>
@@ -196,7 +207,6 @@ function handleCheckIn(id){
 
   confetti({particleCount:60,spread:70,origin:{y:0.6}});
 }
-
 /* NAVIGATE TO AUCTION */
 function enterAuction(name,bidder,table){
   window.location.href=`auctionNEW.html?name=${encodeURIComponent(name)}&bidder=${bidder}&table=${table}`;
