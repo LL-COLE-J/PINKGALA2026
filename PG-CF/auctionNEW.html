@@ -210,12 +210,12 @@ function render(){
         </div>
 
         <div class="cardRight">
-          ${item.image ? `<img src="${item.image}">` : ""}
-        </div>
-      </div>
-    `;
-  });
-}
+  ${item.image ? `
+    <a href="${item.image}" target="_blank">
+      <img src="${item.image}" onerror="this.style.display='none'">
+    </a>
+  ` : ""}
+</div>
 
 /* MY BIDS PAGE */
 function renderMyBids(){
