@@ -113,7 +113,15 @@ input {
 <script>
 
 const API = "https://us-central1-pg-auction.cloudfunctions.net/api";
-let USER_ID = new URLSearchParams(window.location.search).get("bidder") || "guest";
+let USER_ID =
+  new URLSearchParams(window.location.search).get("bidder") ||
+  localStorage.getItem("bidder") ||
+  "guest";
+
+// 🚨 force check-in if no bidder
+if (USER_ID === "guest") {
+  window.location.href = "/";
+}
 
 // =====================
 // FETCH ITEMS
