@@ -1,1 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Check In</title>
 
+<style>
+body {
+  margin: 0;
+  font-family: Arial;
+  background: black;
+  color: white;
+}
+
+.container {
+  padding: 16px;
+}
+
+h1 {
+  color: #ff4da6;
+}
+
+input {
+  width: 100%;
+  padding: 12px;
+  margin: 10px 0;
+  border-radius: 8px;
+  border: none;
+  background: #222;
+  color: white;
+}
+
+.result {
+  padding: 12px;
+  margin: 6px 0;
+  background: #161616;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.result:hover {
+  background: #2a2a2a;
+}
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+  <h1>Check In</h1>
+  <p>Search your name</p>
+
+  <input id="search" placeholder="Enter your name" oninput="searchGuests()">
+
+  <div id="results"></div>
+</div>
+
+<script>
+
+const API = "https://us-central1-pg-auction.cloudfunctions.net/api";
+
+let guests = [];
+
+// LOAD GUESTS
+async function loadGuests() {
+  const res = await fetch(API + "/guests");
+  guests = await res.json();
+}
+
+function searchGuests() {
+  const term = document.getElementById("search").value.toLowerCase();
+  const results = document.getElementById("results");
+
+  results.innerHTML = "";
+
+  const filtered = guests.filter(g =>
+    g.name.toLowerCase().includes(term)
+  );
+
+  filtered.slice(0, 10).forEach(g => {
+    const div = document.createElement("div");
+    div.className = "result";
+
+    div.innerHTML = `
+      ${g.name} (Bidder #${g.bidderNumber})
+    `;
+
+    div.onclick = () => selectGuest(g);
+
+    results.appendChild(div);
+  });
+}
+
+// SELECT GUEST
+function selectGuest(g) {
+  localStorage.setItem("bidder", g.bidderNumber);
+  alert("Welcome " + g.name);
+
+  window.location.href = "/auction.html";
+}
+
+loadGuests();
+
+</script>
+
+</body>
+</html>
