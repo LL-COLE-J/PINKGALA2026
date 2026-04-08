@@ -93,11 +93,12 @@ function searchGuests() {
 }
 
 // SELECT GUEST
-function selectGuest(g) {
-  localStorage.setItem("bidder", g.bidderNumber);
-  alert("Welcome " + g.name);
+function selectGuest(guest) {
+  const bidderId = guest.bidderNumber || guest.id;
 
-  window.location.href = "/auction.html";
+  localStorage.setItem("bidder", bidderId);
+
+  window.location.href = "/auction.html?bidder=" + bidderId;
 }
 
 loadGuests();
