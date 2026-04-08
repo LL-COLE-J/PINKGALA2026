@@ -55,12 +55,12 @@ button:hover {
 </div>
 
 <script>
-
 const params = new URLSearchParams(window.location.search);
-const bidder = params.get("bidder");
+let bidder = params.get("bidder") || localStorage.getItem("bidder");
 
-// 👉 If QR already has bidder → skip menu
+// ✅ If already checked in → go straight to auction
 if (bidder) {
+  localStorage.setItem("bidder", bidder);
   window.location.href = "/auction.html?bidder=" + bidder;
 }
 
@@ -68,11 +68,17 @@ function goCheckin() {
   window.location.href = "/checkin.html";
 }
 
+// 🚨 Prevent entering auction without ID
 function goAuction() {
-  window.location.href = "/auction.html";
+  const saved = localStorage.getItem("bidder");
+
+  if (!saved) {
+    alert("Please check in first");
+    return;
+  }
+
+  window.location.href = "/auction.html?bidder=" + saved;
 }
-
 </script>
-
 </body>
 </html>
