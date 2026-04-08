@@ -118,8 +118,16 @@ let USER_ID =
   localStorage.getItem("bidder") ||
   "guest";
 
+  // ✅ Persist bidder if passed in URL
+const urlBidder = new URLSearchParams(window.location.search).get("bidder");
+
+if (urlBidder) {
+  localStorage.setItem("bidder", urlBidder);
+}
+
 // 🚨 force check-in if no bidder
 if (USER_ID === "guest") {
+  alert("Please check in first");
   window.location.href = "/";
 }
 
