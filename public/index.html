@@ -200,6 +200,12 @@ function showCard(g){
     </div>
   `;
 
+  const btn = overlay.querySelector("#enterBtn");
+
+btn.onclick = () => {
+  enterAuction(g.bidder, g.table, g.name);
+};
+
   overlay.onclick = (e) => {
     if (e.target === overlay) overlay.remove();
   };
