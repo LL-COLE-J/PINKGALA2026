@@ -1,14 +1,12 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Pink Gala Auction</title>
 
 <style>
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
 body {
   margin: 0;
@@ -17,28 +15,38 @@ body {
   color: white;
 }
 
-/* HEADER */
-.header {
-  text-align: center;
-  padding: 18px 12px;
+/* TOP BAR */
+.topbar {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  padding: 12px;
   border-bottom: 2px solid #ff2d8d;
 }
 
-.header h1 {
+.topbar button {
+  background: #333;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 10px;
+  font-size: 14px;
+}
+
+.topbar .center {
+  text-align: center;
   color: #ff2d8d;
-  font-size: 24px;
-  margin: 0;
+  font-weight: bold;
 }
 
 /* CONTAINER */
 .container {
-  width: 100%;
   max-width: 600px;
   margin: auto;
   padding: 12px;
 }
 
-/* ITEM CARD */
+/* ITEM */
 .item {
   background: #111;
   border: 2px solid #22c55e;
@@ -47,25 +55,23 @@ body {
   margin-bottom: 16px;
 }
 
-/* TITLE */
 .title {
   font-weight: bold;
   font-size: 18px;
-  margin-bottom: 6px;
 }
 
-/* BID */
 .bid {
   font-size: 34px;
   color: #22c55e;
-  margin-bottom: 6px;
 }
 
-/* STATUS */
 .status {
-  margin-bottom: 12px;
+  margin-bottom: 10px;
   font-size: 14px;
 }
+
+.win { color: #22c55e; }
+.lose { color: #ef4444; }
 
 /* BUTTONS */
 button {
@@ -75,17 +81,14 @@ button {
   border: none;
   margin-bottom: 10px;
   font-size: 16px;
-  min-height: 48px;
 }
 
-/* PRIMARY BID */
 .quick {
   background: #ff2d8d;
   color: white;
   font-weight: bold;
 }
 
-/* SECONDARY */
 .submit {
   background: #333;
   color: white;
@@ -98,54 +101,21 @@ input {
   border-radius: 10px;
   border: none;
   margin-bottom: 10px;
-  font-size: 16px;
-  min-height: 48px;
 }
 
-/* 🔥 SMALL PHONES */
-@media (max-width: 480px) {
-
-  .header h1 {
-    font-size: 20px;
-  }
-
-  .title {
-    font-size: 16px;
-  }
-
-  .bid {
-    font-size: 28px;
-  }
-
-  .status {
-    font-size: 13px;
-  }
-
-  .item {
-    padding: 14px;
-  }
-
-}
-
-/* 🔥 TABLET / MID */
-@media (max-width: 768px) {
-
-  .container {
-    padding: 14px;
-  }
-
-  .bid {
-    font-size: 30px;
-  }
-
+/* MOBILE */
+@media (max-width:480px){
+  .bid { font-size:28px; }
 }
 </style>
 </head>
 
 <body>
 
-<div class="header">
-  <h1>Pink Gala Auction</h1>
+<div class="topbar">
+  <button onclick="goHome()">Home</button>
+  <div class="center" id="viewTitle">All Bids</div>
+  <button onclick="showMyBids()">My Bids</button>
 </div>
 
 <div class="container" id="items"></div>
@@ -154,53 +124,102 @@ input {
 
 let bidder = localStorage.getItem("bidder");
 
-/* MOCK ITEMS */
+/* MOCK DATA */
 let ITEMS = [
   {id:1,name:"LV Bag",bid:500,inc:50,bidder:null},
   {id:2,name:"Spa Day",bid:200,inc:20,bidder:null},
   {id:3,name:"Dinner",bid:150,inc:10,bidder:null}
 ];
 
+let view = "all"; // all | mine
+
 function render(){
+
   const box = document.getElementById("items");
   box.innerHTML = "";
 
-  ITEMS.forEach(i=>{
+  let data = ITEMS;
+
+  if(view === "mine"){
+    data = ITEMS.filter(i => i.bidder != null);
+  }
+
+  if(view === "mine" && data.length === 0){
+    box.innerHTML = `
+      <div class="item">
+        <div class="title">You have no bids yet</div>
+        <button class="submit" onclick="showAll()">All Bids</button>
+      </div>
+    `;
+    return;
+  }
+
+  data.forEach(i=>{
     const next = i.bid + i.inc;
-    const win = i.bidder==bidder;
+    const isWin = i.bidder == bidder;
 
     const div = document.createElement("div");
-    div.className="item";
+    div.className = "item";
 
-    div.innerHTML=`
+    div.innerHTML = `
       <div class="title">${i.name}</div>
       <div class="bid">$${i.bid}</div>
-      <div class="status">${i.bidder ? (win?"Winning":"Outbid") : "No bids"}</div>
 
-      <button class="quick" onclick="quick(${i.id})">Bid $${next}</button>
+      <div class="status ${isWin ? 'win':'lose'}">
+        ${i.bidder ? (isWin ? "Winning" : "Outbid") : "No bids"}
+      </div>
 
-      <input id="c-${i.id}" placeholder="Custom bid">
+      ${view === "all" ? `
+        <button class="quick" onclick="quick(${i.id})">
+          Bid $${next}
+        </button>
 
-      <button class="submit" onclick="custom(${i.id})">Submit</button>
+        <input id="c-${i.id}" placeholder="Enter custom bid">
+
+        <button class="submit" onclick="custom(${i.id})">
+          Submit
+        </button>
+      ` : `
+        <button class="submit" onclick="showAll()">All Bids</button>
+      `}
     `;
 
     box.appendChild(div);
   });
 }
 
+/* NAV */
+function goHome(){
+  window.location.href = "index.html";
+}
+
+function showMyBids(){
+  view = "mine";
+  document.getElementById("viewTitle").innerText = "My Bids";
+  render();
+}
+
+function showAll(){
+  view = "all";
+  document.getElementById("viewTitle").innerText = "All Bids";
+  render();
+}
+
+/* BIDDING (UI ONLY) */
 function quick(id){
   let i = ITEMS.find(x=>x.id===id);
-  i.bid+=i.inc;
-  i.bidder=bidder;
+  i.bid += i.inc;
+  i.bidder = bidder;
   render();
 }
 
 function custom(id){
   let val = Number(document.getElementById("c-"+id).value);
   let i = ITEMS.find(x=>x.id===id);
-  if(val>i.bid){
-    i.bid=val;
-    i.bidder=bidder;
+
+  if(val > i.bid){
+    i.bid = val;
+    i.bidder = bidder;
     render();
   }
 }
