@@ -223,17 +223,34 @@ function enterAuction(){
 
   if (!selectedGuest) return;
 
-  console.log("Sending checkin for:", selectedGuest); // DEBUG
+  console.log("Sending checkin for:", selectedGuest);
 
-  // 🔥 WRITE — USE ID (NOT bidder)
+  // 🔥 WRITE (REMOVE no-cors)
   fetch(API, {
     method:"POST",
-    mode:"no-cors",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded"
+    },
     body:new URLSearchParams({
       action: "checkin",
       id: selectedGuest.id
     })
-  });
+  })
+  .then(res => res.text())
+  .then(data => console.log("Check-in response:", data))
+  .catch(err => console.error("Check-in failed:", err));
+
+  // ✅ SAVE EVERYTHING
+  localStorage.setItem("bidder", selectedGuest.bidder);
+  localStorage.setItem("table", selectedGuest.table);
+  localStorage.setItem("name", selectedGuest.name);
+
+  // ✅ REDIRECT WITH PARAMS (CRITICAL)
+  window.location.href =
+    `auction.html?bidder=${selectedGuest.bidder}` +
+    `&table=${selectedGuest.table}` +
+    `&name=${encodeURIComponent(selectedGuest.name)}`;
+}
 
   // SAVE LOCAL
   localStorage.setItem("bidder", selectedGuest.bidder);
