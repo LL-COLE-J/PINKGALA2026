@@ -119,13 +119,8 @@ input {
 <div class="container" id="items"></div>
 
 <script>
-function goHome() {
-  window.location.href = "/";
-}
-  
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzFeVWBQvxbh8AvC0HtN3wbcXga31CmbfeYef1opsgkc98omqTSjhaTANB5fw9e3-8N/exec";
 
-// ===== SESSION =====
 const USER_ID = localStorage.getItem("USER_ID");
 const USER_NAME = localStorage.getItem("USER_NAME");
 
@@ -134,107 +129,113 @@ if (!USER_ID) {
   window.location.href = "/";
 }
 
-// ===== GLOBALS =====
 let ITEMS = [];
-let bidQueue = [];
 let sending = false;
-
-const itemsEl = document.getElementById("items");
 
 // ===== LOAD ITEMS =====
 async function loadItems() {
   const res = await fetch(WEB_APP_URL + "?action=getItems");
   ITEMS = await res.json();
 
-  renderItems();
+  bindDataToCards();
 }
 
-// ===== RENDER =====
-function renderItems() {
-  itemsEl.innerHTML = "";
+// ===== BIND DATA TO EXISTING UI =====
+function bindDataToCards() {
+  const cards = document.querySelectorAll(".card"); // your existing cards
 
-  ITEMS.forEach(item => {
-    const div = document.createElement("div");
+  cards.forEach((card, index) => {
+    const item = ITEMS[index];
+    if (!item) return;
 
-    div.innerHTML = `
-      <h3>${item.item_name}</h3>
-      <p>Current Bid: $${item.current_bid}</p>
-      <button onclick="placeBid('${item.item_id}', '${item.item_name}')">
-        Bid +${item.bid_increment || 50}
-      </button>
-    `;
+    // TITLE
+    card.querySelector(".title").innerText = item.item_name;
 
-    itemsEl.appendChild(div);
+    // CURRENT BID (or starting)
+    const current = item.current_bid || item.starting_bid;
+    card.querySelector(".currentBid").innerText = `$${current}`;
+
+    // NO BIDS / WINNER
+    const statusEl = card.querySelector(".status");
+    if (item.current_winner_name) {
+      statusEl.innerText = `Winning: ${item.current_winner_name}`;
+    } else {
+      statusEl.innerText = "No bids";
+    }
+
+    // NEXT BID BUTTON
+    const increment = item.bid_increment || 50;
+    const nextBid = current + increment;
+
+    const bidBtn = card.querySelector(".bidBtn");
+    bidBtn.innerText = `Bid $${nextBid}`;
+
+    // ===== BUTTON CLICK =====
+    bidBtn.onclick = () => placeBid(item, nextBid, card);
+
+    // ===== CUSTOM BID =====
+    const input = card.querySelector(".customBid");
+    const submit = card.querySelector(".submitBid");
+
+    submit.onclick = () => {
+      const value = Number(input.value);
+
+      if (!value || isNaN(value)) {
+        alert("Enter a valid number");
+        return;
+      }
+
+      if (value < nextBid) {
+        alert(`Bid must be at least $${nextBid}`);
+        return;
+      }
+
+      placeBid(item, value, card);
+    };
+
+    // ===== HIGHLIGHT IF USER WINNING =====
+    if (item.current_winner == USER_ID) {
+      card.style.border = "2px solid #00ff88";
+    }
   });
 }
 
 // ===== PLACE BID =====
-function placeBid(itemId, itemName) {
-  const item = ITEMS.find(i => i.item_id === itemId);
-
-  if (!item) return;
-
-  const increment = item.bid_increment || 50;
-
-  const bid = {
-    itemId: itemId,
-    itemName: itemName,
-    amount: item.current_bid + increment,
-    userId: USER_ID,
-    userName: USER_NAME,
-    time: Date.now()
-  };
-
-  queueBid(bid);
-}
-
-// ===== QUEUE =====
-function queueBid(bid) {
-  bidQueue.push(bid);
-  processQueue();
-}
-
-async function processQueue() {
-  if (sending || bidQueue.length === 0) return;
-
+async function placeBid(item, amount, card) {
+  if (sending) return;
   sending = true;
 
-  const bid = bidQueue.shift();
-
   try {
-    const res = await sendBidToServer(bid);
+    const res = await fetch(WEB_APP_URL, {
+      method: "POST",
+      body: JSON.stringify({
+        type: "bid",
+        itemId: item.item_id,
+        itemName: item.item_name,
+        amount: amount,
+        userId: USER_ID,
+        userName: USER_NAME
+      })
+    });
 
-    if (res.status === "success") {
-      // update local UI
-      const item = ITEMS.find(i => i.item_id === bid.itemId);
-      if (item) {
-        item.current_bid = res.newBid;
-      }
+    const data = await res.json();
 
-      renderItems();
+    if (data.status === "success") {
+      await loadItems(); // refresh UI
+    } else {
+      alert("Bid failed");
     }
 
   } catch (e) {
-    console.error("Retrying...", e);
-    bidQueue.unshift(bid);
+    console.error(e);
+    alert("Error placing bid");
   }
 
   sending = false;
-  processQueue();
 }
 
-// ===== SEND BID =====
-async function sendBidToServer(bid) {
-  const res = await fetch(WEB_APP_URL, {
-    method: "POST",
-    body: JSON.stringify({
-      type: "bid",
-      ...bid
-    })
-  });
-
-  return await res.json();
-}
+// ===== AUTO REFRESH =====
+setInterval(loadItems, 3000);
 
 // ===== INIT =====
 loadItems();
