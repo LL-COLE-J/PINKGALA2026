@@ -118,6 +118,44 @@ input {
 
 <div class="container" id="items"></div>
 
+  /* 🔥 PINK BID BUTTON (ENHANCED BUT SAME LOOK) */
+.bidBtn {
+  background: linear-gradient(180deg, #ff2d8d 0%, #e60073 100%);
+  color: #fff;
+  font-weight: 700;
+  border: none;
+  border-radius: 10px;
+  width: 100%;
+  padding: 12px;
+  cursor: pointer;
+
+  /* subtle depth */
+  box-shadow: 0 4px 10px rgba(255, 45, 141, 0.35);
+
+  /* smooth interaction */
+  transition: transform 0.08s ease, box-shadow 0.08s ease, background 0.15s ease;
+}
+
+/* HOVER (desktop only, harmless on mobile) */
+.bidBtn:hover {
+  background: linear-gradient(180deg, #ff4da6 0%, #ff2d8d 100%);
+}
+
+/* TAP / CLICK FEEDBACK */
+.bidBtn:active {
+  transform: scale(0.97);
+  box-shadow: 0 2px 6px rgba(255, 45, 141, 0.25);
+}
+
+/* DISABLED STATE (for anti-spam logic) */
+.bidBtn:disabled {
+  background: #999;
+  color: #eee;
+  box-shadow: none;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
 <script>
 
   function goHome() {
