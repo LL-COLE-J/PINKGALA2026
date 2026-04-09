@@ -216,15 +216,18 @@ function enterAuction(){
 
   const bidder = localStorage.getItem("bidder");
 
-  // 🔥 WRITE CHECK-IN TO SHEET
+  // 🔥 WRITE CHECK-IN
   fetch(API, {
     method:"POST",
     mode:"no-cors",
     body:new URLSearchParams({
-      action:"checkin",
+      action: "checkin",
       bidder: bidder
     })
   });
+
+  window.location.href = "auction.html";
+}
 
   window.location.href = "auction.html";
 }
