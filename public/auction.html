@@ -187,41 +187,39 @@ async function loadItems() {
 
 // ===== BIND DATA TO EXISTING UI =====
 function bindDataToCards() {
-  const cards = document.querySelectorAll(".card"); // your existing cards
+  const container = document.getElementById("items");
+  container.innerHTML = "";
 
-  cards.forEach((card, index) => {
-    const item = ITEMS[index];
-    if (!item) return;
-
-    // TITLE
-    card.querySelector(".title").innerText = item.item_name;
-
-    // CURRENT BID (or starting)
+  ITEMS.forEach(item => {
     const current = item.current_bid || item.starting_bid;
-    card.querySelector(".currentBid").innerText = `$${current}`;
-
-    // NO BIDS / WINNER
-    const statusEl = card.querySelector(".status");
-    if (item.current_winner_name) {
-      statusEl.innerText = `Winning: ${item.current_winner_name}`;
-    } else {
-      statusEl.innerText = "No bids";
-    }
-
-    // NEXT BID BUTTON
     const increment = item.bid_increment || 50;
     const nextBid = current + increment;
 
-    const bidBtn = card.querySelector(".bidBtn");
-    bidBtn.innerText = `Bid $${nextBid}`;
+    const statusText = item.current_winner_name
+      ? `Winning: ${item.current_winner_name}`
+      : "No bids";
 
-    // ===== BUTTON CLICK =====
-    bidBtn.onclick = () => placeBid(item, nextBid, card);
+    const div = document.createElement("div");
+    div.className = "item";
 
-    // ===== CUSTOM BID =====
-    const input = card.querySelector(".customBid");
-    const submit = card.querySelector(".submitBid");
+    div.innerHTML = `
+      <div class="title">${item.item_name}</div>
+      <div class="bid">$${current}</div>
+      <div class="status">${statusText}</div>
 
+      <button class="quick bidBtn">Bid $${nextBid}</button>
+      <input class="customBid" placeholder="Custom bid" />
+      <button class="submit submitBid">Submit</button>
+    `;
+
+    const bidBtn = div.querySelector(".bidBtn");
+    const input = div.querySelector(".customBid");
+    const submit = div.querySelector(".submitBid");
+
+    // QUICK BID
+    bidBtn.onclick = () => placeBid(item, nextBid);
+
+    // CUSTOM BID
     submit.onclick = () => {
       const value = Number(input.value);
 
@@ -235,13 +233,15 @@ function bindDataToCards() {
         return;
       }
 
-      placeBid(item, value, card);
+      placeBid(item, value);
     };
 
-    // ===== HIGHLIGHT IF USER WINNING =====
+    // HIGHLIGHT WINNER
     if (item.current_winner == USER_ID) {
-      card.style.border = "2px solid #00ff88";
+      div.style.border = "2px solid #00ff88";
     }
+
+    container.appendChild(div);
   });
 }
 
