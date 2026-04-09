@@ -195,22 +195,24 @@ function showCard(g){
       <div class="info">Bidder #${g.bidder}</div>
 
       <button class="enter-btn" id="enterBtn">
- Enter Starting Bid 
-</button>
+        Enter Starting Bid
+      </button>
     </div>
   `;
 
-  const btn = overlay.querySelector("#enterBtn");
-
-btn.onclick = () => {
-  enterAuction(g.bidder, g.table, g.name);
-};
-
+  // KEEP this close handler
   overlay.onclick = (e) => {
     if (e.target === overlay) overlay.remove();
   };
 
+  // ✅ APPEND FIRST (fix)
   document.body.appendChild(overlay);
+
+  // ✅ THEN bind button (fix)
+  const btn = overlay.querySelector("#enterBtn");
+  btn.onclick = () => {
+    enterAuction(g.bidder, g.table, g.name);
+  };
 }
 
 /* ENTER AUCTION */
