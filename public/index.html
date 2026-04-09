@@ -21,23 +21,26 @@ body {
   padding: 40px 20px 20px;
   border-bottom: 2px solid #ff2d8d;
 }
-.ribbon {
-  width: 26px;
-  height: 40px;
-  margin: 0 auto 10px;
-  position: relative;
-}
 .ribbon::before,
 .ribbon::after {
   content: "";
   position: absolute;
-  width: 12px;
-  height: 34px;
+  width: 16px;
+  height: 50px;
   background: #ff2d8d;
-  border-radius: 10px;
+  border-radius: 12px;
+  top: 0;
 }
-.ribbon::before { left: 0; transform: rotate(25deg); }
-.ribbon::after { right: 0; transform: rotate(-25deg); }
+
+.ribbon::before {
+  left: 8px;
+  transform: rotate(35deg);
+}
+
+.ribbon::after {
+  right: 8px;
+  transform: rotate(-35deg);
+}
 
 .header h1 {
   font-family: 'Playfair Display', serif;
