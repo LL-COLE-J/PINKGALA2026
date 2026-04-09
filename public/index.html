@@ -247,6 +247,10 @@ function showCard(g){
     <button class="enter-btn" onclick="enterAuction()">Enter Auction</button>
   </div>
 `;
+overlay.onclick = (e) => {
+  if (e.target === overlay) overlay.remove();
+};
+  
   document.body.appendChild(overlay);
 }
 
