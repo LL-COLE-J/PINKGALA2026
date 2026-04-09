@@ -87,7 +87,6 @@ let guests = [];
 async function loadGuests() {
   const res = await fetch(API + "?action=getGuestsCheckin");
   guests = await res.json();
-  render(guests);
 }
 
 /* RENDER LIST */
