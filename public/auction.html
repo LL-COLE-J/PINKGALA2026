@@ -6,6 +6,10 @@
 <title>Pink Gala Auction</title>
 
 <style>
+* {
+  box-sizing: border-box;
+}
+
 body {
   margin: 0;
   font-family: Arial;
@@ -13,107 +17,96 @@ body {
   color: white;
 }
 
+/* HEADER */
 .header {
   text-align: center;
-  padding: 20px;
+  padding: 18px 12px;
   border-bottom: 2px solid #ff2d8d;
 }
 
 .header h1 {
   color: #ff2d8d;
+  font-size: 24px;
+  margin: 0;
 }
 
+/* CONTAINER */
 .container {
+  width: 100%;
   max-width: 600px;
   margin: auto;
-  padding: 15px;
+  padding: 12px;
 }
 
+/* ITEM CARD */
 .item {
   background: #111;
   border: 2px solid #22c55e;
   border-radius: 16px;
-  padding: 18px;
-  margin-bottom: 18px;
+  padding: 16px;
+  margin-bottom: 16px;
 }
 
+/* TITLE */
 .title {
   font-weight: bold;
+  font-size: 18px;
+  margin-bottom: 6px;
 }
 
+/* BID */
 .bid {
   font-size: 34px;
   color: #22c55e;
+  margin-bottom: 6px;
 }
 
+/* STATUS */
 .status {
-  margin-bottom: 10px;
+  margin-bottom: 12px;
+  font-size: 14px;
 }
 
+/* BUTTONS */
 button {
   width: 100%;
-  padding: 12px;
+  padding: 14px;
   border-radius: 10px;
   border: none;
   margin-bottom: 10px;
+  font-size: 16px;
+  min-height: 48px;
 }
 
+/* PRIMARY BID */
 .quick {
   background: #ff2d8d;
   color: white;
+  font-weight: bold;
 }
 
+/* SECONDARY */
 .submit {
   background: #333;
   color: white;
 }
 
+/* INPUT */
 input {
   width: 100%;
-  padding: 12px;
+  padding: 14px;
   border-radius: 10px;
   border: none;
   margin-bottom: 10px;
-}
-
-/* 🔥 BASE MOBILE IMPROVEMENTS */
-.container {
-  width: 100%;
-  max-width: 600px;
-  margin: auto;
-  padding: 12px;
-}
-
-.item {
-  padding: 16px;
-  margin-bottom: 14px;
-}
-
-/* Make buttons easier to tap */
-button {
-  min-height: 48px;
-  font-size: 16px;
-}
-
-/* Inputs bigger */
-input {
   font-size: 16px;
   min-height: 48px;
 }
 
-/* Prevent overflow issues */
-* {
-  box-sizing: border-box;
-}
-
-  @media (max-width: 480px) {
+/* 🔥 SMALL PHONES */
+@media (max-width: 480px) {
 
   .header h1 {
     font-size: 20px;
-  }
-
-  .item {
-    padding: 14px;
   }
 
   .title {
@@ -128,22 +121,24 @@ input {
     font-size: 13px;
   }
 
+  .item {
+    padding: 14px;
+  }
+
 }
 
-  @media (max-width: 768px) {
+/* 🔥 TABLET / MID */
+@media (max-width: 768px) {
 
   .container {
     padding: 14px;
   }
 
   .bid {
-    font-size: 32px;
+    font-size: 30px;
   }
 
 }
-
-  
-  
 </style>
 </head>
 
