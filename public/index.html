@@ -212,13 +212,17 @@ function showCard(g){
   overlay.className = "selected";
 
   overlay.innerHTML = `
-    <div class="selected-card">
-      <h2>${g.name}</h2>
-      <div class="info">Table ${g.table || "N/A"}</div>
-      <div class="info">Bidder #${g.bidder || "N/A"}</div>
-      <button class="enter-btn" onclick="enterAuction()">Enter Auction</button>
-    </div>
-  `;
+  <div class="selected-card">
+    <h2>${g.name}</h2>
+    <div class="info">Table ${g.table || "N/A"}</div>
+    <div class="info">Bidder #${g.bidder || "N/A"}</div>
+
+    <button class="enter-btn"
+      onclick="enterAuction(${g.bidder}, ${g.table}, '${g.name.replace(/'/g, "\\'")}')">
+      Enter Auction
+    </button>
+  </div>
+`;
 
   overlay.onclick = (e) => {
     if (e.target === overlay) overlay.remove();
@@ -227,12 +231,9 @@ function showCard(g){
   document.body.appendChild(overlay);
 }
 
-/* ONLY PLACE WHERE REDIRECT HAPPENS */
-function enterAuction(){
+function enterAuction(bidder, table, name){
 
-  if (!selectedGuest) return;
-
-  console.log("Sending checkin for:", selectedGuest);
+  console.log("CHECKIN DATA:", bidder, table, name);
 
   fetch(API, {
     method:"POST",
@@ -241,23 +242,23 @@ function enterAuction(){
     },
     body:new URLSearchParams({
       action: "checkin",
-      id: selectedGuest.id
+      bidder: bidder
     })
   })
   .then(res => res.text())
   .then(data => {
     console.log("Check-in response:", data);
 
-    // SAVE CONTEXT
-    localStorage.setItem("bidder", selectedGuest.bidder);
-    localStorage.setItem("table", selectedGuest.table);
-    localStorage.setItem("name", selectedGuest.name);
+    // SAVE
+    localStorage.setItem("bidder", bidder);
+    localStorage.setItem("table", table);
+    localStorage.setItem("name", name);
 
-    // REDIRECT ONLY HERE
+    // REDIRECT
     window.location.href =
-      `auction.html?bidder=${selectedGuest.bidder}` +
-      `&table=${selectedGuest.table}` +
-      `&name=${encodeURIComponent(selectedGuest.name)}`;
+      `auction.html?bidder=${bidder}` +
+      `&table=${table}` +
+      `&name=${encodeURIComponent(name)}`;
   })
   .catch(err => {
     console.error("Check-in failed:", err);
