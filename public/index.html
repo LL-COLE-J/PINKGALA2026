@@ -90,42 +90,33 @@ body {
   font-weight: bold;
 }
 
+/* MODAL BACKGROUND */
 .selected {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-
-  /* dim background */
   background: rgba(0,0,0,0.7);
-
   display: flex;
   justify-content: center;
   align-items: center;
-
   z-index: 999;
 }
 
-/* INNER CARD */
+/* POPUP CARD */
 .selected-card {
   background: #ff2d8d;
   color: white;
-
   padding: 30px 25px;
   border-radius: 18px;
-
   width: 90%;
   max-width: 360px;
-
   text-align: center;
-
   box-shadow: 0 10px 40px rgba(0,0,0,0.6);
-
   animation: popIn 0.25s ease;
 }
 
-/* animation */
 @keyframes popIn {
   from {
     transform: scale(0.85);
@@ -137,25 +128,28 @@ body {
   }
 }
 
-.selected h2 {
-  font-size: 26px;
-  margin-bottom: 20px;
+.selected-card h2 {
+  margin-bottom: 15px;
 }
 
 .info {
   font-size: 18px;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 .enter-btn {
-  margin-top: 30px;
-  padding: 16px 30px;
+  margin-top: 25px;
+  padding: 14px 26px;
   background: black;
   color: white;
   border: none;
-  border-radius: 12px;
-  font-size: 18px;
+  border-radius: 10px;
+  font-size: 16px;
   font-weight: bold;
+  cursor: pointer;
+}
+.enter-btn:hover {
+  opacity: 0.85;
 }
 </style>
 </head>
@@ -186,7 +180,7 @@ async function loadGuests() {
   try {
     const res = await fetch(API + "?action=getGuestsCheckin");
     guests = await res.json();
-    console.log("Guests loaded:", guests); // DEBUG
+    console.log("Guests loaded:", guests);
   } catch (e) {
     console.error("Load failed", e);
   }
@@ -224,14 +218,11 @@ function filterGuests(txt){
   );
 }
 
-/* SHOW CARD */
+/* SHOW MODAL CARD */
 function showCard(g){
 
   selectedGuest = g;
 
-  console.log("Selected guest:", g); // DEBUG
-
-  // CLEAR previous overlay if exists
   const existing = document.querySelector(".selected");
   if (existing) existing.remove();
 
@@ -239,18 +230,20 @@ function showCard(g){
   overlay.className = "selected";
 
   overlay.innerHTML = `
-  <div class="selected-card">
-    <h2>${g.name}</h2>
-    <div class="info">Table ${g.table || "N/A"}</div>
-    <div class="info">Bidder #${g.bidder || "N/A"}</div>
+    <div class="selected-card">
+      <h2>${g.name}</h2>
+      <div class="info">Table ${g.table || "N/A"}</div>
+      <div class="info">Bidder #${g.bidder || "N/A"}</div>
 
-    <button class="enter-btn" onclick="enterAuction()">Enter Auction</button>
-  </div>
-`;
-overlay.onclick = (e) => {
-  if (e.target === overlay) overlay.remove();
-};
-  
+      <button class="enter-btn" onclick="enterAuction()">Enter Auction</button>
+    </div>
+  `;
+
+  // click outside to close
+  overlay.onclick = (e) => {
+    if (e.target === overlay) overlay.remove();
+  };
+
   document.body.appendChild(overlay);
 }
 
@@ -261,7 +254,7 @@ function enterAuction(){
 
   console.log("Sending checkin for:", selectedGuest);
 
-  // 🔥 WRITE (REMOVE no-cors)
+  // WRITE TO SHEET
   fetch(API, {
     method:"POST",
     headers: {
@@ -276,19 +269,19 @@ function enterAuction(){
   .then(data => console.log("Check-in response:", data))
   .catch(err => console.error("Check-in failed:", err));
 
-  // ✅ SAVE EVERYTHING
+  // SAVE LOCAL
   localStorage.setItem("bidder", selectedGuest.bidder);
   localStorage.setItem("table", selectedGuest.table);
   localStorage.setItem("name", selectedGuest.name);
 
-  // ✅ REDIRECT WITH PARAMS (CRITICAL)
-  window.location.href =
-    `auction.html?bidder=${selectedGuest.bidder}` +
-    `&table=${selectedGuest.table}` +
-    `&name=${encodeURIComponent(selectedGuest.name)}`;
+  // DELAY → ensure write hits
+  setTimeout(() => {
+    window.location.href =
+      `auction.html?bidder=${selectedGuest.bidder}` +
+      `&table=${selectedGuest.table}` +
+      `&name=${encodeURIComponent(selectedGuest.name)}`;
+  }, 300);
 }
-
-  
 
 /* INIT */
 loadGuests();
