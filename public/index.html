@@ -220,9 +220,9 @@ function enterAuction(bidder, table, name){
   fetch(API, {
     method:"POST",
     body:new URLSearchParams({
-      action: "checkin",
-      bidder: bidder
-    })
+  action: "checkin",
+  id: bidder
+})
   })
   .then(res => res.text())
   .then(data => {
