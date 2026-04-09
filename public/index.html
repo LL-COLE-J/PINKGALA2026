@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Pink Gala Check-In</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Inter:wght@400;600&display=swap" rel="stylesheet">
@@ -14,37 +15,69 @@ body {
   color: white;
 }
 
+/* HEADER */
 .header {
   text-align: center;
-  padding: 30px 20px;
+  padding: 25px 20px;
   border-bottom: 2px solid #ff2d8d;
 }
 
+/* Ribbon shape */
 .ribbon {
-  font-size: 42px;
+  width: 40px;
+  height: 60px;
+  margin: 0 auto 10px;
+  position: relative;
+}
+
+.ribbon::before,
+.ribbon::after {
+  content: "";
+  position: absolute;
+  width: 18px;
+  height: 50px;
+  background: #ff2d8d;
+  border-radius: 10px;
+}
+
+.ribbon::before {
+  left: 0;
+  transform: rotate(25deg);
+}
+
+.ribbon::after {
+  right: 0;
+  transform: rotate(-25deg);
 }
 
 .header h1 {
   font-family: 'Playfair Display', serif;
   color: #ff2d8d;
+  margin: 0;
 }
 
+/* CONTAINER */
 .container {
   max-width: 500px;
   margin: auto;
   padding: 20px;
 }
 
+/* SEARCH */
 .search {
   width: 100%;
-  padding: 14px;
+  padding: 16px;
   border-radius: 14px;
   border: none;
-  background: #111;
-  color: white;
-  margin-bottom: 15px;
+  background: white;
+  color: black;
+  font-weight: bold;
+  text-align: center;
+  font-size: 16px;
+  margin-bottom: 20px;
 }
 
+/* LIST */
 .card {
   background: #111;
   border-radius: 16px;
@@ -53,15 +86,54 @@ body {
 
 .guest {
   background: #ff2d8d;
-  padding: 15px;
+  padding: 16px;
   border-radius: 12px;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
   text-align: center;
   cursor: pointer;
+  font-weight: bold;
 }
 
 .guest:hover {
   background: #ff4da6;
+}
+
+/* SELECTED CARD (FULL SCREEN FEEL) */
+.selected {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #ff2d8d;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+  text-align: center;
+  padding: 20px;
+}
+
+.selected h2 {
+  font-size: 26px;
+  margin-bottom: 20px;
+}
+
+.info {
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+
+.enter-btn {
+  margin-top: 30px;
+  padding: 16px 30px;
+  background: black;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 18px;
+  font-weight: bold;
 }
 </style>
 </head>
@@ -69,32 +141,30 @@ body {
 <body>
 
 <div class="header">
-  <div class="ribbon">🎀</div>
+  <div class="ribbon"></div>
   <h1>Welcome To The 2026 Pink Gala</h1>
 </div>
 
 <div class="container">
-  <input class="search" autofocus placeholder="Search your name..." oninput="filterGuests(this.value)">
-  <div class="card">
-  <div id="emptyMsg" style="text-align:center;color:#888;padding:10px;">
-    Start typing your name...
-  </div>
-  <div id="guestList"></div>
-    
+
+  <input class="search" autofocus placeholder="SEARCH YOUR NAME" oninput="filterGuests(this.value)">
+
+  <div class="card" id="guestList"></div>
+
 </div>
 
 <script>
+
 const API = "https://script.google.com/macros/s/AKfycbzFeVWBQvxbh8AvC0HtN3wbcXga31CmbfeYef1opsgkc98omqTSjhaTANB5fw9e3-8N/exec";
 
 let guests = [];
 
-/* LOAD FROM SHEET */
 async function loadGuests() {
   const res = await fetch(API + "?action=getGuestsCheckin");
   guests = await res.json();
 }
 
-/* RENDER LIST */
+/* RENDER */
 function render(list){
   const box = document.getElementById("guestList");
   box.innerHTML = "";
@@ -104,15 +174,9 @@ function render(list){
 
     const div = document.createElement("div");
     div.className = "guest";
+    div.innerText = g.name;
 
-    div.innerHTML = `
-      <strong>${g.name}</strong>
-      <div style="font-size:12px;color:#eee">Table ${g.table || ""}</div>
-    `;
-
-    div.onclick = ()=>{
-      checkIn(g);
-    };
+    div.onclick = ()=> showCard(g);
 
     box.appendChild(div);
   });
@@ -120,17 +184,6 @@ function render(list){
 
 /* SEARCH */
 function filterGuests(txt){
-
-  const msg = document.getElementById("emptyMsg");
-
-  if (!txt) {
-    document.getElementById("guestList").innerHTML = "";
-    msg.style.display = "block";
-    return;
-  }
-
-  msg.style.display = "none";
-
   render(
     guests.filter(g =>
       g.name.toLowerCase().includes(txt.toLowerCase())
@@ -138,40 +191,34 @@ function filterGuests(txt){
   );
 }
 
-/* CHECK-IN */
-function checkIn(g){
+/* SHOW FULL SCREEN CARD */
+function showCard(g){
 
   localStorage.setItem("bidder", g.bidder);
   localStorage.setItem("bidderName", g.name);
 
-  // 🔥 WRITE TO SHEET
-  fetch(API, {
-    method:"POST",
-    mode:"no-cors",
-    body:new URLSearchParams({
-      action:"checkin",
-      id:g.id
-    })
-  });
+  const overlay = document.createElement("div");
+  overlay.className = "selected";
 
-  // UX feedback
-  document.getElementById("guestList").style.display = "none";
-  document.querySelector(".search").style.display = "none";
+  overlay.innerHTML = `
+    <h2>${g.name}</h2>
+    <div class="info">Table ${g.table || "-"}</div>
+    <div class="info">Bidder #${g.bidder}</div>
 
-  const msg = document.createElement("div");
-  msg.innerHTML = `<h2 style="color:#ff2d8d;">Welcome ${g.name}</h2>`;
-  msg.style.textAlign = "center";
-  msg.style.marginTop = "30px";
+    <button class="enter-btn" onclick="enterAuction()">Enter Auction</button>
+  `;
 
-  document.body.appendChild(msg);
-
-  setTimeout(()=>{
-    window.location.href = "auction.html";
-  }, 1000);
+  document.body.appendChild(overlay);
 }
 
-/* INIT */
+/* ENTER AUCTION */
+function enterAuction(){
+  window.location.href = "auction.html";
+}
+
 loadGuests();
+
 </script>
+
 </body>
 </html>
