@@ -239,12 +239,14 @@ function showCard(g){
   overlay.className = "selected";
 
   overlay.innerHTML = `
+  <div class="selected-card">
     <h2>${g.name}</h2>
     <div class="info">Table ${g.table || "N/A"}</div>
     <div class="info">Bidder #${g.bidder || "N/A"}</div>
-    <button class="enter-btn" onclick="enterAuction()">Enter Auction</button>
-  `;
 
+    <button class="enter-btn" onclick="enterAuction()">Enter Auction</button>
+  </div>
+`;
   document.body.appendChild(overlay);
 }
 
