@@ -75,7 +75,12 @@ body {
 
 <div class="container">
   <input class="search" placeholder="Search your name..." oninput="filterGuests(this.value)">
-  <div class="card" id="guestList"></div>
+  <div class="card">
+  <div id="emptyMsg" style="text-align:center;color:#888;padding:10px;">
+    Start typing your name...
+  </div>
+  <div id="guestList"></div>
+    
 </div>
 
 <script>
@@ -115,6 +120,17 @@ function render(list){
 
 /* SEARCH */
 function filterGuests(txt){
+
+  const msg = document.getElementById("emptyMsg");
+
+  if (!txt) {
+    document.getElementById("guestList").innerHTML = "";
+    msg.style.display = "block";
+    return;
+  }
+
+  msg.style.display = "none";
+
   render(
     guests.filter(g =>
       g.name.toLowerCase().includes(txt.toLowerCase())
