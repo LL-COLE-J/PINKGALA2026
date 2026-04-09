@@ -213,6 +213,19 @@ function showCard(g){
 
 /* ENTER AUCTION */
 function enterAuction(){
+
+  const bidder = localStorage.getItem("bidder");
+
+  // 🔥 WRITE CHECK-IN TO SHEET
+  fetch(API, {
+    method:"POST",
+    mode:"no-cors",
+    body:new URLSearchParams({
+      action:"checkin",
+      bidder: bidder
+    })
+  });
+
   window.location.href = "auction.html";
 }
 
