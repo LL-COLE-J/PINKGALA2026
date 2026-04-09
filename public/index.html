@@ -22,7 +22,6 @@ body {
   border-bottom: 2px solid #ff2d8d;
 }
 
-/* Ribbon */
 .ribbon {
   width: 40px;
   height: 60px;
@@ -38,14 +37,8 @@ body {
   background: #ff2d8d;
   border-radius: 10px;
 }
-.ribbon::before {
-  left: 0;
-  transform: rotate(25deg);
-}
-.ribbon::after {
-  right: 0;
-  transform: rotate(-25deg);
-}
+.ribbon::before { left: 0; transform: rotate(25deg); }
+.ribbon::after { right: 0; transform: rotate(-25deg); }
 
 .header h1 {
   font-family: 'Playfair Display', serif;
@@ -107,25 +100,12 @@ body {
 /* POPUP CARD */
 .selected-card {
   background: #ff2d8d;
-  color: white;
   padding: 30px 25px;
   border-radius: 18px;
   width: 90%;
   max-width: 360px;
   text-align: center;
   box-shadow: 0 10px 40px rgba(0,0,0,0.6);
-  animation: popIn 0.25s ease;
-}
-
-@keyframes popIn {
-  from {
-    transform: scale(0.85);
-    opacity: 0;
-  }
-  to {
-    transform: scale(1);
-    opacity: 1;
-  }
 }
 
 .selected-card h2 {
@@ -148,9 +128,6 @@ body {
   font-weight: bold;
   cursor: pointer;
 }
-.enter-btn:hover {
-  opacity: 0.85;
-}
 </style>
 </head>
 
@@ -162,11 +139,8 @@ body {
 </div>
 
 <div class="container">
-
   <input class="search" autofocus placeholder="SEARCH YOUR NAME" oninput="filterGuests(this.value)">
-
   <div class="card" id="guestList"></div>
-
 </div>
 
 <script>
@@ -175,7 +149,7 @@ const API = "https://script.google.com/macros/s/AKfycbzFeVWBQvxbh8AvC0HtN3wbcXga
 let guests = [];
 let selectedGuest = null;
 
-/* LOAD */
+/* LOAD ONLY (NO RENDER) */
 async function loadGuests() {
   try {
     const res = await fetch(API + "?action=getGuestsCheckin");
@@ -186,7 +160,7 @@ async function loadGuests() {
   }
 }
 
-/* RENDER */
+/* RENDER ONLY ON SEARCH */
 function render(list){
   const box = document.getElementById("guestList");
   box.innerHTML = "";
@@ -197,8 +171,7 @@ function render(list){
     const div = document.createElement("div");
     div.className = "guest";
     div.innerText = g.name;
-
-    div.onclick = ()=> showCard(g);
+    div.onclick = () => showCard(g);
 
     box.appendChild(div);
   });
@@ -218,7 +191,7 @@ function filterGuests(txt){
   );
 }
 
-/* SHOW MODAL CARD */
+/* SHOW MODAL ONLY (NO REDIRECT) */
 function showCard(g){
 
   selectedGuest = g;
@@ -234,12 +207,10 @@ function showCard(g){
       <h2>${g.name}</h2>
       <div class="info">Table ${g.table || "N/A"}</div>
       <div class="info">Bidder #${g.bidder || "N/A"}</div>
-
       <button class="enter-btn" onclick="enterAuction()">Enter Auction</button>
     </div>
   `;
 
-  // click outside to close
   overlay.onclick = (e) => {
     if (e.target === overlay) overlay.remove();
   };
@@ -247,14 +218,13 @@ function showCard(g){
   document.body.appendChild(overlay);
 }
 
-/* ENTER AUCTION */
+/* ONLY PLACE WHERE REDIRECT HAPPENS */
 function enterAuction(){
 
   if (!selectedGuest) return;
 
   console.log("Sending checkin for:", selectedGuest);
 
-  // WRITE TO SHEET
   fetch(API, {
     method:"POST",
     headers: {
@@ -266,21 +236,24 @@ function enterAuction(){
     })
   })
   .then(res => res.text())
-  .then(data => console.log("Check-in response:", data))
-  .catch(err => console.error("Check-in failed:", err));
+  .then(data => {
+    console.log("Check-in response:", data);
 
-  // SAVE LOCAL
-  localStorage.setItem("bidder", selectedGuest.bidder);
-  localStorage.setItem("table", selectedGuest.table);
-  localStorage.setItem("name", selectedGuest.name);
+    // SAVE CONTEXT
+    localStorage.setItem("bidder", selectedGuest.bidder);
+    localStorage.setItem("table", selectedGuest.table);
+    localStorage.setItem("name", selectedGuest.name);
 
-  // DELAY → ensure write hits
-  setTimeout(() => {
+    // REDIRECT ONLY HERE
     window.location.href =
       `auction.html?bidder=${selectedGuest.bidder}` +
       `&table=${selectedGuest.table}` +
       `&name=${encodeURIComponent(selectedGuest.name)}`;
-  }, 300);
+  })
+  .catch(err => {
+    console.error("Check-in failed:", err);
+    alert("Check-in failed. Try again.");
+  });
 }
 
 /* INIT */
