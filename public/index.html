@@ -79,40 +79,84 @@ body {
 </div>
 
 <script>
+const API = "https://script.google.com/macros/s/AKfycbzFeVWBQvxbh8AvC0HtN3wbcXga31CmbfeYef1opsgkc98omqTSjhaTANB5fw9e3-8N/exec";
 
-/* MOCK DATA */
-let guests = [
-  { name: "Cole Jacobs", bidder: 501 },
-  { name: "Sarah Smith", bidder: 502 },
-  { name: "John Miller", bidder: 503 }
-];
+let guests = [];
 
+/* LOAD FROM SHEET */
+async function loadGuests() {
+  const res = await fetch(API + "?action=getGuestsCheckin");
+  guests = await res.json();
+  render(guests);
+}
+
+/* RENDER LIST */
 function render(list){
   const box = document.getElementById("guestList");
   box.innerHTML = "";
 
-  list.forEach(g=>{
+  list.slice(0,15).forEach(g=>{
+    if (!g.name) return;
+
     const div = document.createElement("div");
     div.className = "guest";
-    div.innerText = g.name;
+
+    div.innerHTML = `
+      <strong>${g.name}</strong>
+      <div style="font-size:12px;color:#eee">Table ${g.table || ""}</div>
+    `;
 
     div.onclick = ()=>{
-      localStorage.setItem("bidder", g.bidder);
-      localStorage.setItem("bidderName", g.name);
-      window.location.href = "auction.html";
+      checkIn(g);
     };
 
     box.appendChild(div);
   });
 }
 
+/* SEARCH */
 function filterGuests(txt){
-  render(guests.filter(g=>g.name.toLowerCase().includes(txt.toLowerCase())));
+  render(
+    guests.filter(g =>
+      g.name.toLowerCase().includes(txt.toLowerCase())
+    )
+  );
 }
 
-render(guests);
+/* CHECK-IN */
+function checkIn(g){
 
+  localStorage.setItem("bidder", g.bidder);
+  localStorage.setItem("bidderName", g.name);
+
+  // 🔥 WRITE TO SHEET
+  fetch(API, {
+    method:"POST",
+    mode:"no-cors",
+    body:new URLSearchParams({
+      action:"checkin",
+      id:g.id
+    })
+  });
+
+  // UX feedback
+  document.getElementById("guestList").style.display = "none";
+  document.querySelector(".search").style.display = "none";
+
+  const msg = document.createElement("div");
+  msg.innerHTML = `<h2 style="color:#ff2d8d;">Welcome ${g.name}</h2>`;
+  msg.style.textAlign = "center";
+  msg.style.marginTop = "30px";
+
+  document.body.appendChild(msg);
+
+  setTimeout(()=>{
+    window.location.href = "auction.html";
+  }, 1000);
+}
+
+/* INIT */
+loadGuests();
 </script>
-
 </body>
 </html>
