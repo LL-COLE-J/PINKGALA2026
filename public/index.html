@@ -1,84 +1,118 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pink Gala 2026</title>
+<meta charset="UTF-8">
+<title>Pink Gala Check-In</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Inter:wght@400;600&display=swap" rel="stylesheet">
 
 <style>
 body {
   margin: 0;
-  font-family: Arial;
-  background: black;
+  font-family: 'Inter', sans-serif;
+  background: #000;
   color: white;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
+}
+
+.header {
+  text-align: center;
+  padding: 30px 20px;
+  border-bottom: 2px solid #ff2d8d;
+}
+
+.ribbon {
+  font-size: 42px;
+}
+
+.header h1 {
+  font-family: 'Playfair Display', serif;
+  color: #ff2d8d;
 }
 
 .container {
-  text-align: center;
+  max-width: 500px;
+  margin: auto;
+  padding: 20px;
 }
 
-h1 {
-  color: #ff4da6;
-  margin-bottom: 20px;
-}
-
-button {
-  display: block;
-  width: 200px;
-  margin: 10px auto;
-  padding: 12px;
-  border-radius: 10px;
+.search {
+  width: 100%;
+  padding: 14px;
+  border-radius: 14px;
   border: none;
-  font-size: 16px;
-  background: #333;
+  background: #111;
   color: white;
+  margin-bottom: 15px;
+}
+
+.card {
+  background: #111;
+  border-radius: 16px;
+  padding: 15px;
+}
+
+.guest {
+  background: #ff2d8d;
+  padding: 15px;
+  border-radius: 12px;
+  margin-bottom: 10px;
+  text-align: center;
   cursor: pointer;
 }
 
-button:hover {
-  background: #555;
+.guest:hover {
+  background: #ff4da6;
 }
 </style>
-
 </head>
 
 <body>
 
-<div class="container">
-  <h1>2026 Pink Gala</h1>
+<div class="header">
+  <div class="ribbon">🎀</div>
+  <h1>Welcome To The 2026 Pink Gala</h1>
+</div>
 
-  <button onclick="goCheckin()">Check In</button>
-  <button onclick="goAuction()">Enter Auction</button>
+<div class="container">
+  <input class="search" placeholder="Search your name..." oninput="filterGuests(this.value)">
+  <div class="card" id="guestList"></div>
 </div>
 
 <script>
-const params = new URLSearchParams(window.location.search);
-let bidder = params.get("bidder") || localStorage.getItem("bidder");
 
-// ✅ If already checked in → go straight to auction
-if (bidder) {
-  localStorage.setItem("bidder", bidder);
-  window.location.href = "/auction.html?bidder=" + bidder;
+/* MOCK DATA */
+let guests = [
+  { name: "Cole Jacobs", bidder: 501 },
+  { name: "Sarah Smith", bidder: 502 },
+  { name: "John Miller", bidder: 503 }
+];
+
+function render(list){
+  const box = document.getElementById("guestList");
+  box.innerHTML = "";
+
+  list.forEach(g=>{
+    const div = document.createElement("div");
+    div.className = "guest";
+    div.innerText = g.name;
+
+    div.onclick = ()=>{
+      localStorage.setItem("bidder", g.bidder);
+      localStorage.setItem("bidderName", g.name);
+      window.location.href = "auction.html";
+    };
+
+    box.appendChild(div);
+  });
 }
 
-function goCheckin() {
-  window.location.href = "/checkin.html";
+function filterGuests(txt){
+  render(guests.filter(g=>g.name.toLowerCase().includes(txt.toLowerCase())));
 }
 
-// 🚨 Prevent entering auction without ID
-function goAuction() {
-  const saved = localStorage.getItem("bidder");
+render(guests);
 
-  if (!saved) {
-    alert("Please check in first");
-    return;
-  }
-
-  window.location.href = "/auction.html?bidder=" + saved;
-}
 </script>
+
 </body>
 </html>
