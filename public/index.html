@@ -18,7 +18,7 @@ body {
 /* HEADER */
 .header {
   text-align: center;
-  padding: 25px 20px;
+  padding: 20px;
   border-bottom: 2px solid #ff2d8d;
 }
 
@@ -28,7 +28,6 @@ body {
   margin: 0 auto 10px;
   position: relative;
 }
-
 .ribbon::before,
 .ribbon::after {
   content: "";
@@ -38,62 +37,55 @@ body {
   background: #ff2d8d;
   border-radius: 10px;
 }
-
-.ribbon::before {
-  left: 0;
-  transform: rotate(25deg);
-}
-
-.ribbon::after {
-  right: 0;
-  transform: rotate(-25deg);
-}
+.ribbon::before { left: 0; transform: rotate(25deg); }
+.ribbon::after { right: 0; transform: rotate(-25deg); }
 
 .header h1 {
   font-family: 'Playfair Display', serif;
   color: #ff2d8d;
+  font-size: 20px;
 }
 
 /* CONTAINER */
 .container {
   max-width: 500px;
   margin: auto;
-  padding: 20px;
+  padding: 15px;
 }
 
 /* SEARCH */
 .search {
   width: 100%;
-  padding: 16px;
-  border-radius: 14px;
+  padding: 14px;
+  border-radius: 12px;
   border: none;
   background: white;
   color: black;
   font-weight: bold;
   text-align: center;
   font-size: 16px;
-  margin-bottom: 20px;
+  margin-bottom: 15px;
 }
 
 /* LIST */
 .card {
   background: #111;
-  border-radius: 16px;
-  padding: 15px;
+  border-radius: 14px;
+  padding: 10px;
 }
 
 .guest {
   background: #ff2d8d;
-  padding: 16px;
-  border-radius: 12px;
-  margin-bottom: 12px;
+  padding: 14px;
+  border-radius: 10px;
+  margin-bottom: 10px;
   text-align: center;
   cursor: pointer;
   font-weight: bold;
 }
 
-/* MODAL BACKGROUND */
-.selected {
+/* MODAL */
+.overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -107,35 +99,33 @@ body {
 }
 
 /* POPUP CARD */
-.selected-card {
+.popup {
   background: #ff2d8d;
-  padding: 30px 25px;
-  border-radius: 18px;
+  padding: 25px 20px;
+  border-radius: 16px;
   width: 90%;
-  max-width: 360px;
+  max-width: 320px;
   text-align: center;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.6);
 }
 
-.selected-card h2 {
-  margin-bottom: 15px;
+.popup h2 {
+  margin-bottom: 10px;
 }
 
 .info {
-  font-size: 18px;
-  margin-bottom: 8px;
+  font-size: 16px;
+  margin-bottom: 6px;
 }
 
 .enter-btn {
-  margin-top: 25px;
-  padding: 14px 26px;
+  margin-top: 20px;
+  padding: 12px 20px;
   background: black;
   color: white;
   border: none;
   border-radius: 10px;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: bold;
-  cursor: pointer;
 }
 </style>
 </head>
@@ -144,11 +134,11 @@ body {
 
 <div class="header">
   <div class="ribbon"></div>
-  <h1>Welcome To The 2026 Pink Gala</h1>
+  <h1>Pink Gala 2026</h1>
 </div>
 
 <div class="container">
-  <input class="search" autofocus placeholder="SEARCH YOUR NAME" oninput="filterGuests(this.value)">
+  <input class="search" placeholder="SEARCH YOUR NAME" oninput="filterGuests(this.value)">
   <div class="card" id="guestList"></div>
 </div>
 
@@ -156,73 +146,60 @@ body {
 const API = "https://script.google.com/macros/s/AKfycbzFeVWBQvxbh8AvC0HtN3wbcXga31CmbfeYef1opsgkc98omqTSjhaTANB5fw9e3-8N/exec";
 
 let guests = [];
-let selectedGuest = null;
 
-/* LOAD ONLY (NO RENDER) */
+/* LOAD */
 async function loadGuests() {
-  try {
-    const res = await fetch(API + "?action=getGuestsCheckin");
-    guests = await res.json();
-    console.log("Guests loaded:", guests);
-  } catch (e) {
-    console.error("Load failed", e);
-  }
+  const res = await fetch(API + "?action=getGuestsCheckin");
+  guests = await res.json();
 }
 
-/* RENDER ONLY ON SEARCH */
-function render(list){
+/* SEARCH ONLY */
+function filterGuests(txt){
   const box = document.getElementById("guestList");
+
+  if (!txt) {
+    box.innerHTML = "";
+    return;
+  }
+
+  const results = guests.filter(g =>
+    g.name.toLowerCase().includes(txt.toLowerCase())
+  );
+
   box.innerHTML = "";
 
-  list.slice(0,15).forEach(g=>{
-    if (!g.name) return;
-
+  results.slice(0,15).forEach(g => {
     const div = document.createElement("div");
     div.className = "guest";
     div.innerText = g.name;
+
     div.onclick = () => showCard(g);
 
     box.appendChild(div);
   });
 }
 
-/* SEARCH */
-function filterGuests(txt){
-  if (!txt) {
-    document.getElementById("guestList").innerHTML = "";
-    return;
-  }
-
-  render(
-    guests.filter(g =>
-      g.name.toLowerCase().includes(txt.toLowerCase())
-    )
-  );
-}
-
-/* SHOW MODAL ONLY (NO REDIRECT) */
+/* SHOW POPUP */
 function showCard(g){
 
-  selectedGuest = g;
-
-  const existing = document.querySelector(".selected");
+  const existing = document.querySelector(".overlay");
   if (existing) existing.remove();
 
   const overlay = document.createElement("div");
-  overlay.className = "selected";
+  overlay.className = "overlay";
 
   overlay.innerHTML = `
-  <div class="selected-card">
-    <h2>${g.name}</h2>
-    <div class="info">Table ${g.table || "N/A"}</div>
-    <div class="info">Bidder #${g.bidder || "N/A"}</div>
+    <div class="popup">
+      <h2>${g.name}</h2>
+      <div class="info">Table ${g.table}</div>
+      <div class="info">Bidder #${g.bidder}</div>
 
-    <button class="enter-btn"
-      onclick="enterAuction(${g.bidder}, ${g.table}, '${g.name.replace(/'/g, "\\'")}')">
-      Enter Auction
-    </button>
-  </div>
-`;
+      <button class="enter-btn"
+        onclick="enterAuction(${g.bidder}, ${g.table}, '${g.name.replace(/'/g,"\\'")}')">
+        Enter Auction
+      </button>
+    </div>
+  `;
 
   overlay.onclick = (e) => {
     if (e.target === overlay) overlay.remove();
@@ -231,9 +208,8 @@ function showCard(g){
   document.body.appendChild(overlay);
 }
 
+/* ENTER AUCTION */
 function enterAuction(bidder, table, name){
-
-  console.log("CHECKIN DATA:", bidder, table, name);
 
   fetch(API, {
     method:"POST",
@@ -245,25 +221,16 @@ function enterAuction(bidder, table, name){
       bidder: bidder
     })
   })
-  .then(res => res.text())
-  .then(data => {
-    console.log("Check-in response:", data);
+  .then(() => {
 
-    // SAVE
     localStorage.setItem("bidder", bidder);
     localStorage.setItem("table", table);
     localStorage.setItem("name", name);
 
-    // REDIRECT
     window.location.href =
-      `auction.html?bidder=${bidder}` +
-      `&table=${table}` +
-      `&name=${encodeURIComponent(name)}`;
+      `auction.html?bidder=${bidder}&table=${table}&name=${encodeURIComponent(name)}`;
   })
-  .catch(err => {
-    console.error("Check-in failed:", err);
-    alert("Check-in failed. Try again.");
-  });
+  .catch(() => alert("Check-in failed"));
 }
 
 /* INIT */
