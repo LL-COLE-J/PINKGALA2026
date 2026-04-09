@@ -119,144 +119,121 @@ input {
 <div class="container" id="items"></div>
 
 <script>
+const WEB_APP_URL = "PASTE_YOUR_WEB_APP_URL_HERE";
 
-let bidder = localStorage.getItem("bidder");
+// ===== SESSION =====
+const USER_ID = localStorage.getItem("USER_ID");
+const USER_NAME = localStorage.getItem("USER_NAME");
 
-/* MOCK DATA */
-let ITEMS = [
-  {id:1,name:"LV Bag",bid:500,inc:50,bidder:null},
-  {id:2,name:"Spa Day",bid:200,inc:20,bidder:null},
-  {id:3,name:"Dinner",bid:150,inc:10,bidder:null}
-];
+if (!USER_ID) {
+  alert("Please check in first");
+  window.location.href = "/";
+}
 
-let view = "all";
+// ===== GLOBALS =====
+let ITEMS = [];
+let bidQueue = [];
+let sending = false;
 
-/* RENDER */
-function render(){
+const itemsEl = document.getElementById("items");
 
-  const box = document.getElementById("items");
-  box.innerHTML = "";
+// ===== LOAD ITEMS =====
+async function loadItems() {
+  const res = await fetch(WEB_APP_URL + "?action=getItems");
+  ITEMS = await res.json();
 
-  if(view === "mine"){
+  renderItems();
+}
 
-    const mine = ITEMS.filter(i => i.bidder != null);
+// ===== RENDER =====
+function renderItems() {
+  itemsEl.innerHTML = "";
 
-    box.innerHTML = `
-      <div class="item">
-        <div class="title">Your Active Bids</div>
-      </div>
-    `;
-
-    if(mine.length === 0){
-      box.innerHTML += `
-        <div class="item">
-          <div class="title">You have no bids yet</div>
-        </div>
-      `;
-      return;
-    }
-
-    mine.forEach(i=>{
-      const isWin = i.bidder == bidder;
-
-      const div = document.createElement("div");
-      div.className = "item";
-
-      div.innerHTML = `
-        <div class="title">${i.name}</div>
-        <div class="bid">$${i.bid}</div>
-
-        <div class="status ${isWin ? 'win':'lose'}">
-          ${isWin ? "Winning" : "Losing"}
-        </div>
-
-        <div>Bidder #${i.bidder}</div>
-      `;
-
-      box.appendChild(div);
-    });
-
-    return;
-  }
-
-  /* MAIN AUCTION */
-
-  ITEMS.forEach(i=>{
-    const next = i.bid + i.inc;
-    const isWin = i.bidder == bidder;
-
+  ITEMS.forEach(item => {
     const div = document.createElement("div");
-    div.className = "item";
 
     div.innerHTML = `
-      <div class="title">${i.name}</div>
-      <div class="bid">$${i.bid}</div>
-
-      <div class="status ${isWin ? 'win':'lose'}">
-        ${i.bidder ? (isWin ? "Winning" : "Losing") : "No bids"}
-      </div>
-
-      <div>${i.bidder ? "Bidder #" + i.bidder : ""}</div>
-
-      <button class="quick" onclick="quick(${i.id})">
-        Bid $${next}
-      </button>
-
-      <input id="c-${i.id}" placeholder="Enter custom bid">
-
-      <button class="submit" onclick="custom(${i.id})">
-        Submit
+      <h3>${item.item_name}</h3>
+      <p>Current Bid: $${item.current_bid}</p>
+      <button onclick="placeBid('${item.item_id}', '${item.item_name}')">
+        Bid +${item.bid_increment || 50}
       </button>
     `;
 
-    box.appendChild(div);
+    itemsEl.appendChild(div);
   });
 }
 
-/* NAV */
-function goHome(){
-  window.location.href = "index.html";
+// ===== PLACE BID =====
+function placeBid(itemId, itemName) {
+  const item = ITEMS.find(i => i.item_id === itemId);
+
+  if (!item) return;
+
+  const increment = item.bid_increment || 50;
+
+  const bid = {
+    itemId: itemId,
+    itemName: itemName,
+    amount: item.current_bid + increment,
+    userId: USER_ID,
+    userName: USER_NAME,
+    time: Date.now()
+  };
+
+  queueBid(bid);
 }
 
-function showMyBids(){
-  view = "mine";
-
-  document.getElementById("myBidsBtn").innerText = "Return to All Bids";
-  document.getElementById("myBidsBtn").onclick = showAll;
-
-  render();
+// ===== QUEUE =====
+function queueBid(bid) {
+  bidQueue.push(bid);
+  processQueue();
 }
 
-function showAll(){
-  view = "all";
+async function processQueue() {
+  if (sending || bidQueue.length === 0) return;
 
-  document.getElementById("myBidsBtn").innerText = "My Bids";
-  document.getElementById("myBidsBtn").onclick = showMyBids;
+  sending = true;
 
-  render();
-}
+  const bid = bidQueue.shift();
 
-/* BIDDING (UI ONLY) */
-function quick(id){
-  let i = ITEMS.find(x=>x.id===id);
-  i.bid += i.inc;
-  i.bidder = bidder;
-  render();
-}
+  try {
+    const res = await sendBidToServer(bid);
 
-function custom(id){
-  let val = Number(document.getElementById("c-"+id).value);
-  let i = ITEMS.find(x=>x.id===id);
+    if (res.status === "success") {
+      // update local UI
+      const item = ITEMS.find(i => i.item_id === bid.itemId);
+      if (item) {
+        item.current_bid = res.newBid;
+      }
 
-  if(val > i.bid){
-    i.bid = val;
-    i.bidder = bidder;
-    render();
+      renderItems();
+    }
+
+  } catch (e) {
+    console.error("Retrying...", e);
+    bidQueue.unshift(bid);
   }
+
+  sending = false;
+  processQueue();
 }
 
-render();
+// ===== SEND BID =====
+async function sendBidToServer(bid) {
+  const res = await fetch(WEB_APP_URL, {
+    method: "POST",
+    body: JSON.stringify({
+      type: "bid",
+      ...bid
+    })
+  });
 
+  return await res.json();
+}
+
+// ===== INIT =====
+loadItems();
 </script>
 
 </body>
