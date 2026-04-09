@@ -18,7 +18,7 @@ body {
 /* HEADER */
 .header {
   text-align: center;
-  padding: 30px 20px 20px;
+  padding: 20px;
   border-bottom: 2px solid #ff2d8d;
 }
 
@@ -182,6 +182,18 @@ function filterGuests(txt){
 /* SHOW POPUP */
 function showCard(g){
 
+  // 🔥 WRITE CHECK-IN ON NAME CLICK (ONLY CHANGE)
+  fetch(API, {
+    method:"POST",
+    body:new URLSearchParams({
+      action: "checkin",
+      bidder: g.bidder
+    })
+  })
+  .then(res => res.text())
+  .then(data => console.log("CHECKIN (on click):", data))
+  .catch(err => console.error("CHECKIN FAILED:", err));
+
   const existing = document.querySelector(".overlay");
   if (existing) existing.remove();
 
@@ -212,33 +224,15 @@ function showCard(g){
   };
 }
 
-/* ENTER AUCTION */
+/* ENTER AUCTION (NO WRITE HERE ANYMORE) */
 function enterAuction(bidder, table, name){
 
-  console.log("SENDING TO GAS:", bidder);
+  localStorage.setItem("bidder", bidder);
+  localStorage.setItem("table", table);
+  localStorage.setItem("name", name);
 
-  fetch(API, {
-    method:"POST",
-    body:new URLSearchParams({
-  action: "checkin",
-  id: bidder
-})
-  })
-  .then(res => res.text())
-  .then(data => {
-    console.log("GAS RESPONSE:", data);
-
-    localStorage.setItem("bidder", bidder);
-    localStorage.setItem("table", table);
-    localStorage.setItem("name", name);
-
-    window.location.href =
-      `auction.html?bidder=${bidder}&table=${table}&name=${encodeURIComponent(name)}`;
-  })
-  .catch(err => {
-    console.error("WRITE FAILED:", err);
-    alert("Check-in failed. Try again.");
-  });
+  window.location.href =
+    `auction.html?bidder=${bidder}&table=${table}&name=${encodeURIComponent(name)}`;
 }
 
 /* INIT */
