@@ -9,7 +9,7 @@
 
 <style>
 
-  .ribbon-img {
+.ribbon-img {
   width: 28px;
   max-width: 8vw;
   height: auto;
@@ -29,33 +29,6 @@ body {
   text-align: center;
   padding: 40px 20px 20px;
   border-bottom: 2px solid #ff2d8d;
-}
-.ribbon {
-  width: 24px;
-  height: 30px;
-  margin: 0 auto 6px;
-  position: relative;
-}
-
-.ribbon::before,
-.ribbon::after {
-  content: "";
-  position: absolute;
-  width: 10px;
-  height: 30px;
-  background: #ff2d8d;
-  border-radius: 10px;
-  top: 0;
-}
-
-.ribbon::before {
-  left: 4px;
-  transform: rotate(35deg);
-}
-
-.ribbon::after {
-  right: 4px;
-  transform: rotate(-35deg);
 }
 
 .header h1 {
@@ -151,7 +124,7 @@ body {
 <body>
 
 <div class="header">
-<img src="/ribbon.png" class="ribbon-img">
+  <img src="/ribbon.png" class="ribbon-img">
   <h1>Pink Gala 2026</h1>
 </div>
 
@@ -165,11 +138,45 @@ const API = "https://script.google.com/macros/s/AKfycbzFeVWBQvxbh8AvC0HtN3wbcXga
 
 let guests = [];
 
-/* LOAD */
+/* 🔥 WRITE QUEUE (from your v1 concept) */
+let writeQueue = [];
+let processing = false;
+
+function processQueue() {
+  if (processing || writeQueue.length === 0) return;
+
+  processing = true;
+  const item = writeQueue.shift();
+
+  fetch(API, {
+    method:"POST",
+    body:new URLSearchParams(item)
+  })
+  .catch(err => console.error("QUEUE WRITE FAILED:", err))
+  .finally(() => {
+    processing = false;
+    setTimeout(processQueue, 120); // throttle
+  });
+}
+
+function queueCheckin(bidder) {
+  writeQueue.push({
+    action: "checkin",
+    bidder: bidder
+  });
+
+  processQueue();
+}
+
+/* LOAD (preload ASAP for speed) */
 async function loadGuests() {
   const res = await fetch(API + "?action=getGuestsCheckin");
   guests = await res.json();
+  console.log("Guests loaded:", guests.length);
 }
+
+/* START LOAD IMMEDIATELY */
+loadGuests();
 
 /* SEARCH ONLY */
 function filterGuests(txt){
@@ -200,17 +207,8 @@ function filterGuests(txt){
 /* SHOW POPUP */
 function showCard(g){
 
-  // 🔥 WRITE CHECK-IN ON NAME CLICK (ONLY CHANGE)
-  fetch(API, {
-    method:"POST",
-    body:new URLSearchParams({
-      action: "checkin",
-      bidder: g.bidder
-    })
-  })
-  .then(res => res.text())
-  .then(data => console.log("CHECKIN (on click):", data))
-  .catch(err => console.error("CHECKIN FAILED:", err));
+  // 🔥 QUEUED WRITE (replaces direct fetch)
+  queueCheckin(g.bidder);
 
   const existing = document.querySelector(".overlay");
   if (existing) existing.remove();
@@ -242,7 +240,7 @@ function showCard(g){
   };
 }
 
-/* ENTER AUCTION (NO WRITE HERE ANYMORE) */
+/* ENTER AUCTION */
 function enterAuction(bidder, table, name){
 
   localStorage.setItem("bidder", bidder);
@@ -252,9 +250,6 @@ function enterAuction(bidder, table, name){
   window.location.href =
     `auction.html?bidder=${bidder}&table=${table}&name=${encodeURIComponent(name)}`;
 }
-
-/* INIT */
-loadGuests();
 </script>
 
 </body>
