@@ -218,6 +218,8 @@ function showCard(g){
 /* ENTER AUCTION */
 function enterAuction(bidder, table, name){
 
+  console.log("SENDING TO GAS:", bidder);
+
   fetch(API, {
     method:"POST",
     headers: {
@@ -228,16 +230,23 @@ function enterAuction(bidder, table, name){
       bidder: bidder
     })
   })
-  .then(() => {
+  .then(res => res.text())
+  .then(data => {
+    console.log("GAS RESPONSE:", data);
 
+    // SAVE
     localStorage.setItem("bidder", bidder);
     localStorage.setItem("table", table);
     localStorage.setItem("name", name);
 
+    // ONLY redirect AFTER response
     window.location.href =
       `auction.html?bidder=${bidder}&table=${table}&name=${encodeURIComponent(name)}`;
   })
-  .catch(() => alert("Check-in failed"));
+  .catch(err => {
+    console.error("WRITE FAILED:", err);
+    alert("Check-in failed. Try again.");
+  });
 }
 
 /* INIT */
