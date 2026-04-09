@@ -57,7 +57,6 @@ input {
 </div>
 
 <script>
-
 const API = "https://us-central1-pg-auction.cloudfunctions.net/api";
 
 let guests = [];
@@ -66,43 +65,58 @@ let guests = [];
 async function loadGuests() {
   const res = await fetch(API + "/guests");
   guests = await res.json();
+  renderGuests(guests);
+
+  document.getElementById("loading").style.display = "none";
+  document.getElementById("status").innerText = "Start typing name";
 }
 
-function searchGuests() {
-  const term = document.getElementById("search").value.toLowerCase();
-  const results = document.getElementById("results");
+// SEARCH
+function handleSearch(e){
+  const term = e.target.value.toLowerCase();
+  const container = document.getElementById("guestList");
+  container.innerHTML = "";
 
-  results.innerHTML = "";
+  const results = guests
+    .filter(g => g.name.toLowerCase().includes(term))
+    .slice(0, 10);
 
-  const filtered = guests.filter(g =>
-    g.name.toLowerCase().includes(term)
-  );
-
-  filtered.slice(0, 10).forEach(g => {
+  results.forEach(g => {
     const div = document.createElement("div");
-    div.className = "result";
-
-    div.innerHTML = `
-      ${g.name} (Bidder #${g.bidderNumber})
-    `;
-
-    div.onclick = () => selectGuest(g);
-
-    results.appendChild(div);
+    div.className = "matchButton";
+    div.innerText = g.name;
+    div.onclick = () => checkIn(g);
+    container.appendChild(div);
   });
 }
 
-// SELECT GUEST
-function selectGuest(guest) {
-  const bidderId = guest.bidderNumber || guest.id;
+// CHECK-IN
+function checkIn(guest){
 
-  localStorage.setItem("bidder", bidderId);
+  const bidder = guest.bidderNumber || guest.id;
 
-  window.location.href = "/auction.html?bidder=" + bidderId;
+  localStorage.setItem("bidder", bidder);
+
+  document.getElementById("guestList").innerHTML = `
+    <div class="tableCard">
+      <div class="welcomeName">${guest.name}</div>
+      <div class="tableNumber">${guest.table || "-"}</div>
+      <div class="bidderNumber">Bidder #${bidder}</div>
+      <div style="margin-top:15px;">✅ Checked In</div>
+    </div>
+  `;
+
+  setTimeout(() => {
+    window.location.href = "/auction.html?bidder=" + bidder;
+  }, 800);
 }
 
-loadGuests();
-
+// INIT
+window.onload = () => {
+  loadGuests();
+  document.getElementById("searchInput")
+    .addEventListener("input", handleSearch);
+};
 </script>
 
 </body>
