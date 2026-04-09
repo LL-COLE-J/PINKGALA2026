@@ -133,122 +133,54 @@ body {
   <div class="card" id="guestList"></div>
 </div>
 
+<script src="guests.js"></script>
+
 <script>
-const API = "https://script.google.com/macros/s/AKfycbzFeVWBQvxbh8AvC0HtN3wbcXga31CmbfeYef1opsgkc98omqTSjhaTANB5fw9e3-8N/exec";
+const WEB_APP_URL = "PASTE_YOUR_WEB_APP_URL_HERE";
 
-let guests = [];
+// ===== SEARCH + SELECT =====
+const resultsEl = document.getElementById("results");
+const searchEl = document.getElementById("search");
 
-/* 🔥 WRITE QUEUE (from your v1 concept) */
-let writeQueue = [];
-let processing = false;
+searchEl.addEventListener("input", () => {
+  const val = searchEl.value.toLowerCase();
+  resultsEl.innerHTML = "";
 
-function processQueue() {
-  if (processing || writeQueue.length === 0) return;
-
-  processing = true;
-  const item = writeQueue.shift();
-
-  fetch(API, {
-    method:"POST",
-    body:new URLSearchParams(item)
-  })
-  .catch(err => console.error("QUEUE WRITE FAILED:", err))
-  .finally(() => {
-    processing = false;
-    setTimeout(processQueue, 120); // throttle
-  });
-}
-
-function queueCheckin(bidder) {
-  writeQueue.push({
-    action: "checkin",
-    bidder: bidder
-  });
-
-  processQueue();
-}
-
-/* LOAD (preload ASAP for speed) */
-async function loadGuests() {
-  const res = await fetch(API + "?action=getGuestsCheckin");
-  guests = await res.json();
-  console.log("Guests loaded:", guests.length);
-}
-
-/* START LOAD IMMEDIATELY */
-loadGuests();
-
-/* SEARCH ONLY */
-function filterGuests(txt){
-  const box = document.getElementById("guestList");
-
-  if (!txt) {
-    box.innerHTML = "";
-    return;
-  }
-
-  const results = guests.filter(g =>
-    g.name.toLowerCase().includes(txt.toLowerCase())
+  const matches = GUESTS.filter(g =>
+    g.name.toLowerCase().includes(val)
   );
 
-  box.innerHTML = "";
-
-  results.slice(0,15).forEach(g => {
-    const div = document.createElement("div");
-    div.className = "guest";
-    div.innerText = g.name;
-
-    div.onclick = () => showCard(g);
-
-    box.appendChild(div);
+  matches.forEach(guest => {
+    const li = document.createElement("li");
+    li.textContent = guest.name;
+    li.onclick = () => checkIn(guest);
+    resultsEl.appendChild(li);
   });
-}
+});
 
-/* SHOW POPUP */
-function showCard(g){
+// ===== CHECK-IN =====
+async function checkIn(guest) {
+  try {
+    // 🔹 BACKEND WRITE (Guests sheet)
+    await fetch(WEB_APP_URL, {
+      method: "POST",
+      body: JSON.stringify({
+        type: "checkin",
+        userId: guest.id,
+        userName: guest.name
+      })
+    });
 
-  // 🔥 QUEUED WRITE (replaces direct fetch)
-  queueCheckin(g.bidder);
+  } catch (e) {
+    console.log("Check-in backend failed (non-blocking)", e);
+  }
 
-  const existing = document.querySelector(".overlay");
-  if (existing) existing.remove();
+  // 🔹 LOCAL SESSION (CRITICAL)
+  localStorage.setItem("USER_ID", guest.id);
+  localStorage.setItem("USER_NAME", guest.name);
 
-  const overlay = document.createElement("div");
-  overlay.className = "overlay";
-
-  overlay.innerHTML = `
-    <div class="popup">
-      <h2>${g.name}</h2>
-      <div class="info">Table ${g.table}</div>
-      <div class="info">Bidder #${g.bidder}</div>
-
-      <button class="enter-btn" id="enterBtn">
-        Enter Starting Bid
-      </button>
-    </div>
-  `;
-
-  overlay.onclick = (e) => {
-    if (e.target === overlay) overlay.remove();
-  };
-
-  document.body.appendChild(overlay);
-
-  const btn = overlay.querySelector("#enterBtn");
-  btn.onclick = () => {
-    enterAuction(g.bidder, g.table, g.name);
-  };
-}
-
-/* ENTER AUCTION */
-function enterAuction(bidder, table, name){
-
-  localStorage.setItem("bidder", bidder);
-  localStorage.setItem("table", table);
-  localStorage.setItem("name", name);
-
-  window.location.href =
-    `auction.html?bidder=${bidder}&table=${table}&name=${encodeURIComponent(name)}`;
+  // 🔹 REDIRECT
+  window.location.href = "/auction.html";
 }
 </script>
 
