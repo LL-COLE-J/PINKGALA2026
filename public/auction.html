@@ -112,10 +112,13 @@ input {
 
 <body>
 
-<div class="topbar">
-  <button onclick="goHome()">Home</button>
-  <div class="center" id="viewTitle">All Bids</div>
-  <button onclick="showMyBids()">My Bids</button>
+<div class="header">
+  <h1>2026 Pink Gala Auction</h1>
+
+  <div style="margin-top:10px;">
+    <button class="submit" onclick="goHome()">Home</button>
+    <button class="submit" onclick="showMyBids()">My Bids</button>
+  </div>
 </div>
 
 <div class="container" id="items"></div>
@@ -131,30 +134,60 @@ let ITEMS = [
   {id:3,name:"Dinner",bid:150,inc:10,bidder:null}
 ];
 
-let view = "all"; // all | mine
+let view = "all";
 
+/* RENDER */
 function render(){
 
   const box = document.getElementById("items");
   box.innerHTML = "";
 
-  let data = ITEMS;
-
   if(view === "mine"){
-    data = ITEMS.filter(i => i.bidder != null);
-  }
 
-  if(view === "mine" && data.length === 0){
+    const mine = ITEMS.filter(i => i.bidder != null);
+
     box.innerHTML = `
       <div class="item">
-        <div class="title">You have no bids yet</div>
-        <button class="submit" onclick="showAll()">All Bids</button>
+        <div class="title">Your Active Bids</div>
+        <button class="submit" onclick="showAll()">Return to All Bids</button>
       </div>
     `;
+
+    if(mine.length === 0){
+      box.innerHTML += `
+        <div class="item">
+          <div class="title">You have no bids yet</div>
+        </div>
+      `;
+      return;
+    }
+
+    mine.forEach(i=>{
+      const isWin = i.bidder == bidder;
+
+      const div = document.createElement("div");
+      div.className = "item";
+
+      div.innerHTML = `
+        <div class="title">${i.name}</div>
+        <div class="bid">$${i.bid}</div>
+
+        <div class="status ${isWin ? 'win':'lose'}">
+          ${isWin ? "Winning" : "Losing"}
+        </div>
+
+        <div>Bidder #${i.bidder}</div>
+      `;
+
+      box.appendChild(div);
+    });
+
     return;
   }
 
-  data.forEach(i=>{
+  /* MAIN AUCTION VIEW */
+
+  ITEMS.forEach(i=>{
     const next = i.bid + i.inc;
     const isWin = i.bidder == bidder;
 
@@ -166,22 +199,20 @@ function render(){
       <div class="bid">$${i.bid}</div>
 
       <div class="status ${isWin ? 'win':'lose'}">
-        ${i.bidder ? (isWin ? "Winning" : "Outbid") : "No bids"}
+        ${i.bidder ? (isWin ? "Winning" : "Losing") : "No bids"}
       </div>
 
-      ${view === "all" ? `
-        <button class="quick" onclick="quick(${i.id})">
-          Bid $${next}
-        </button>
+      <div>${i.bidder ? "Bidder #" + i.bidder : ""}</div>
 
-        <input id="c-${i.id}" placeholder="Enter custom bid">
+      <button class="quick" onclick="quick(${i.id})">
+        Bid $${next}
+      </button>
 
-        <button class="submit" onclick="custom(${i.id})">
-          Submit
-        </button>
-      ` : `
-        <button class="submit" onclick="showAll()">All Bids</button>
-      `}
+      <input id="c-${i.id}" placeholder="Enter custom bid">
+
+      <button class="submit" onclick="custom(${i.id})">
+        Submit
+      </button>
     `;
 
     box.appendChild(div);
@@ -195,13 +226,11 @@ function goHome(){
 
 function showMyBids(){
   view = "mine";
-  document.getElementById("viewTitle").innerText = "My Bids";
   render();
 }
 
 function showAll(){
   view = "all";
-  document.getElementById("viewTitle").innerText = "All Bids";
   render();
 }
 
