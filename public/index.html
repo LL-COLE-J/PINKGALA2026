@@ -252,13 +252,7 @@ function enterAuction(){
     `&name=${encodeURIComponent(selectedGuest.name)}`;
 }
 
-  // SAVE LOCAL
-  localStorage.setItem("bidder", selectedGuest.bidder);
-  localStorage.setItem("bidderName", selectedGuest.name);
-
-  // REDIRECT
-  window.location.href = "auction.html";
-}
+  
 
 /* INIT */
 loadGuests();
