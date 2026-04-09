@@ -194,10 +194,9 @@ function showCard(g){
       <div class="info">Table ${g.table}</div>
       <div class="info">Bidder #${g.bidder}</div>
 
-      <button class="enter-btn"
-        onclick="enterAuction(${g.bidder}, ${g.table}, '${g.name.replace(/'/g,"\\'")}')">
-        Enter Auction
-      </button>
+      <button class="enter-btn" id="enterBtn">
+ Enter Starting Bid 
+</button>
     </div>
   `;
 
