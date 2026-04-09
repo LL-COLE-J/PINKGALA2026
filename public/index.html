@@ -200,15 +200,12 @@ function showCard(g){
     </div>
   `;
 
-  // KEEP this close handler
   overlay.onclick = (e) => {
     if (e.target === overlay) overlay.remove();
   };
 
-  // ✅ APPEND FIRST (fix)
   document.body.appendChild(overlay);
 
-  // ✅ THEN bind button (fix)
   const btn = overlay.querySelector("#enterBtn");
   btn.onclick = () => {
     enterAuction(g.bidder, g.table, g.name);
@@ -222,9 +219,6 @@ function enterAuction(bidder, table, name){
 
   fetch(API, {
     method:"POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded"
-    },
     body:new URLSearchParams({
       action: "checkin",
       bidder: bidder
@@ -234,12 +228,10 @@ function enterAuction(bidder, table, name){
   .then(data => {
     console.log("GAS RESPONSE:", data);
 
-    // SAVE
     localStorage.setItem("bidder", bidder);
     localStorage.setItem("table", table);
     localStorage.setItem("name", name);
 
-    // ONLY redirect AFTER response
     window.location.href =
       `auction.html?bidder=${bidder}&table=${table}&name=${encodeURIComponent(name)}`;
   })
