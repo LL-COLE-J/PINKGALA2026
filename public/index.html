@@ -136,65 +136,71 @@ body {
 <script src="guests.js"></script>
 
 <script>
-const WEB_APP_URL = "PASTE_YOUR_WEB_APP_URL_HERE";
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzFeVWBQvxbh8AvC0HtN3wbcXga31CmbfeYef1opsgkc98omqTSjhaTANB5fw9e3-8N/exec";
 
-// 🚨 WAIT FOR PAGE LOAD (FIXES YOUR ERROR)
-document.addEventListener("DOMContentLoaded", () => {
+// ===== RENDER FILTERED GUESTS =====
+function filterGuests(searchText) {
+  const guestList = document.getElementById("guestList");
+  guestList.innerHTML = "";
 
-  const resultsEl = document.getElementById("results");
-  const searchEl = document.getElementById("search");
+  const matches = GUESTS.filter(g =>
+    g.name.toLowerCase().includes(searchText.toLowerCase())
+  );
 
-  // 🚨 HARD STOP IF HTML IS WRONG
-  if (!resultsEl || !searchEl) {
-    console.error("Missing required elements: #search or #results");
-    return;
-  }
+  matches.forEach(guest => {
+    const div = document.createElement("div");
+    div.className = "guest";
+    div.textContent = guest.name;
 
-  // ===== SEARCH FUNCTION =====
-  searchEl.addEventListener("input", () => {
-    const val = searchEl.value.toLowerCase();
-    resultsEl.innerHTML = "";
+    div.onclick = () => showCheckInPopup(guest);
 
-    const matches = GUESTS.filter(g =>
-      g.name.toLowerCase().includes(val)
-    );
-
-    matches.forEach(guest => {
-      const li = document.createElement("li");
-      li.textContent = guest.name;
-
-      li.onclick = () => checkIn(guest);
-
-      resultsEl.appendChild(li);
-    });
+    guestList.appendChild(div);
   });
+}
 
-  // ===== CHECK-IN FUNCTION =====
-  async function checkIn(guest) {
+// ===== POPUP =====
+function showCheckInPopup(guest) {
+  const overlay = document.createElement("div");
+  overlay.className = "overlay";
 
-    try {
-      await fetch(WEB_APP_URL, {
-        method: "POST",
-        body: JSON.stringify({
-          type: "checkin",
-          userId: guest.id,
-          userName: guest.name
-        })
-      });
-    } catch (e) {
-      console.log("Check-in backend failed (non-blocking)", e);
-    }
+  overlay.innerHTML = `
+    <div class="popup">
+      <h2>${guest.name}</h2>
+      <div class="info">Tap enter to check in</div>
+      <button class="enter-btn">Enter Event</button>
+    </div>
+  `;
 
-    // ✅ STORE SESSION (CRITICAL)
-    localStorage.setItem("USER_ID", guest.id);
-    localStorage.setItem("USER_NAME", guest.name);
+  document.body.appendChild(overlay);
 
-    // ✅ REDIRECT
-    window.location.href = "/auction.html";
+  overlay.querySelector(".enter-btn").onclick = () => {
+    completeCheckIn(guest);
+  };
+}
+
+// ===== CHECK-IN =====
+async function completeCheckIn(guest) {
+
+  try {
+    await fetch(WEB_APP_URL, {
+      method: "POST",
+      body: JSON.stringify({
+        type: "checkin",
+        userId: guest.id,
+        userName: guest.name
+      })
+    });
+  } catch (e) {
+    console.log("Check-in backend failed", e);
   }
 
-});
-</script>
+  // ✅ SESSION
+  localStorage.setItem("USER_ID", guest.id);
+  localStorage.setItem("USER_NAME", guest.name);
 
+  // ✅ REDIRECT
+  window.location.href = "/auction.html";
+}
+</script>
 </body>
 </html>
