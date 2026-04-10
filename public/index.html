@@ -167,38 +167,29 @@ function filterGuests(searchText) {
     // 🔥 CHECK-IN ON CLICK (NOT BUTTON)
     div.onclick = async () => {
 
-      // prevent duplicate check-ins
-      try {
+  try {
+    const formData = new URLSearchParams();
+    formData.append("type", "checkin");
+    formData.append("userId", guest.id);
+    formData.append("userName", guest.name);
 
-  const formData = new URLSearchParams();
-  formData.append("type", "checkin");
-  formData.append("userId", guest.id);
-  formData.append("userName", guest.name);
+    await fetch(WEB_APP_URL, {
+      method: "POST",
+      mode: "no-cors",
+      body: formData
+    });
 
-  await fetch(WEB_APP_URL, {
-    method: "POST",
-    mode: "no-cors",
-    body: formData
-  });
+  } catch (e) {
+    console.log("Check-in failed", e);
+  }
 
-} catch (e) {
-  console.log("Check-in failed", e);
-}
+  // store session
+  localStorage.setItem("USER_ID", guest.id);
+  localStorage.setItem("USER_NAME", guest.name);
 
-          localStorage.setItem("CHECKED_IN", "true");
-
-        } catch (e) {
-          console.log("Check-in failed", e);
-        }
-      }
-
-      // store session
-      localStorage.setItem("USER_ID", guest.id);
-      localStorage.setItem("USER_NAME", guest.name);
-
-      // show popup (UNCHANGED UI)
-      showGuestPopup(guest);
-    };
+  // show popup
+  showGuestPopup(guest);
+};
 
     guestList.appendChild(div);
   });
