@@ -139,23 +139,36 @@ const API = "https://script.google.com/macros/s/AKfycbzFeVWBQvxbh8AvC0HtN3wbcXga
 let guests = [];
 let guestsLoaded = false;
 
-/* LOAD */
+/* LOAD (CORS-SAFE) */
 async function loadGuests() {
-  const res = await fetch(API + "?action=getGuestsCheckin");
-  guests = await res.json();
-  guestsLoaded = true;
+  try {
+    const res = await fetch(API + "?action=getGuestsCheckin");
+    const text = await res.text();
 
-  document.querySelector(".search").placeholder = "SEARCH YOUR NAME";
+    if (!text || text.startsWith("<")) {
+      throw new Error("Bad response from GAS");
+    }
+
+    guests = JSON.parse(text);
+    guestsLoaded = true;
+
+    document.querySelector(".search").placeholder = "SEARCH YOUR NAME";
+
+  } catch (err) {
+    console.error("LOAD FAILED:", err);
+
+    document.getElementById("guestList").innerHTML =
+      "<div style='text-align:center;padding:10px;'>Unable to load guests. Refresh.</div>";
+  }
 }
 
 /* START LOAD ASAP */
 loadGuests();
 
-/* SEARCH ONLY */
+/* SEARCH */
 function filterGuests(txt){
   const box = document.getElementById("guestList");
 
-  // 🔥 BLOCK UNTIL LOADED
   if (!guestsLoaded) {
     box.innerHTML = "<div style='text-align:center;padding:10px;'>Loading guests...</div>";
     return;
@@ -186,7 +199,7 @@ function filterGuests(txt){
 /* SHOW POPUP */
 function showCard(g){
 
-  // QUEUED WRITE (unchanged)
+  // WRITE CHECK-IN
   fetch(API, {
     method:"POST",
     body:new URLSearchParams({
