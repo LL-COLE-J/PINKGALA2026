@@ -122,7 +122,7 @@ input {
 
   <div style="margin-top:10px;">
     <button class="submit" onclick="goHome()">Home</button>
-    <button class="submit">My Bids</button>
+    <button id="myBidsBtn" class="submit" onclick="showMyBids()">My Bids</button>
   </div>
 </div>
 
@@ -147,6 +147,44 @@ if (!USER_ID) {
 let ITEMS = [];
 let sending = false;
 
+  let showingMyBids = false;
+
+async function showMyBids() {
+  showingMyBids = !showingMyBids;
+
+  const btn = document.getElementById("myBidsBtn");
+
+  if (showingMyBids) {
+    btn.innerText = "Return to All Bids";
+
+    try {
+      const res = await fetch(WEB_APP_URL + "?action=getBids");
+      const bids = await res.json();
+
+      // 🔥 find items user has bid on
+      const myItemIds = new Set(
+        bids
+          .filter(b => String(b.userId) === String(USER_ID))
+          .map(b => String(b.itemId))
+      );
+
+      // 🔥 filter current items
+      const filtered = ITEMS.filter(item =>
+        myItemIds.has(String(item.item_id))
+      );
+
+      bindDataToCardsFiltered(filtered);
+
+    } catch (e) {
+      console.error("My Bids failed", e);
+    }
+
+  } else {
+    btn.innerText = "My Bids";
+    bindDataToCards();
+  }
+}
+
 // ===== LOAD ITEMS =====
 async function loadItems() {
   try {
@@ -157,6 +195,76 @@ async function loadItems() {
     console.error("Load failed", e);
   }
 }
+
+  function bindDataToCardsFiltered(filteredItems) {
+  const container = document.getElementById("items");
+  container.innerHTML = "";
+
+  filteredItems.forEach(item => {
+
+    const current = item.current_bid || 0;
+    const increment = item.bid_increment || 50;
+    const nextBid = current + increment;
+
+    const isClosed = (item.status || "").toString().trim().toLowerCase() === "closed";
+
+    const isWinning = String(item.current_winner) === String(USER_ID);
+
+    const statusText = isWinning
+      ? `<span style="color:#00ff88;">Winning</span>`
+      : `<span style="color:#ff4d4d;">Losing</span>`;
+
+    const div = document.createElement("div");
+    div.className = "item";
+
+    div.innerHTML = `
+      <div class="title">${item.item_name}</div>
+      <div class="bid">$${current}</div>
+      <div class="status">${statusText}</div>
+
+      ${isClosed
+        ? `<button class="quick bidBtn" disabled>Closed</button>`
+        : `<button class="quick bidBtn">Bid $${nextBid}</button>`
+      }
+
+      <input class="customBid" placeholder="Custom bid" />
+      <button class="submit submitBid">Submit</button>
+    `;
+
+    const bidBtn = div.querySelector(".bidBtn");
+    const input = div.querySelector(".customBid");
+    const submit = div.querySelector(".submitBid");
+
+    if (!isClosed) {
+      bidBtn.onclick = () => placeBid(item, nextBid);
+    }
+
+    submit.onclick = () => {
+      if (isClosed) return;
+
+      const value = Number(input.value);
+
+      if (!value || isNaN(value)) {
+        alert("Enter a valid number");
+        return;
+      }
+
+      if (value < nextBid) {
+        alert(`Minimum bid is $${nextBid}`);
+        return;
+      }
+
+      placeBid(item, value);
+    };
+
+    if (isWinning) {
+      div.style.border = "2px solid #00ff88";
+    }
+
+    container.appendChild(div);
+  });
+}
+  
 
 // ===== RENDER =====
 function bindDataToCards() {
