@@ -116,6 +116,17 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+  // expose for testing
+window.db = db;
+window.fb = {
+  collection,
+  doc,
+  addDoc,
+  updateDoc,
+  runTransaction,
+  serverTimestamp
+};
+
 window.goHome = function() {
   window.location.href = "/";
 };
