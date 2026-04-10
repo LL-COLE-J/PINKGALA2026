@@ -114,9 +114,9 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-function goHome() {
+window.goHome = function() {
   window.location.href = "/";
-}
+};
 
 const USER_ID = localStorage.getItem("USER_ID");
 const USER_NAME = localStorage.getItem("USER_NAME");
@@ -134,9 +134,10 @@ function loadItems() {
   const itemsRef = collection(db, "items");
 
   onSnapshot(itemsRef, (snapshot) => {
-    ITEMS = snapshot.docs.map(doc => doc.data());
-    renderAuction();
-  });
+    ITEMS = snapshot.docs.map(doc => ({
+  id: doc.id,
+  ...doc.data()
+}));
 }
 
 // RENDER
@@ -182,7 +183,7 @@ function renderAuction() {
     const submit = div.querySelector(".submitBid");
 
     if (!isClosed) {
-      bidBtn.onclick = () => submitBid(item.item_id, nextBid);
+      bidBtn.onclick = () => submitBid(item.id, nextBid);
     }
 
     submit.onclick = () => {
@@ -195,7 +196,7 @@ function renderAuction() {
         return;
       }
 
-      submitBid(item.item_id, value);
+      submitBid(item.id, value);
     };
 
     container.appendChild(div);
