@@ -162,7 +162,7 @@ function renderAuction() {
     const submit = div.querySelector(".submitBid");
 
     if (!isClosed) {
-      bidBtn.onclick = () => placeBid(item, nextBid, bidBtn);
+      bidBtn.onclick = () => queueBid(item, nextBid, bidBtn);
     }
 
     submit.onclick = () => {
@@ -175,7 +175,7 @@ function renderAuction() {
         return;
       }
 
-      placeBid(item, value, submit);
+      queueBid(item, value, submit);
     };
 
     container.appendChild(div);
@@ -249,16 +249,32 @@ function returnToAuction() {
 }
 
 // PLACE BID (UPDATED)
-async function placeBid(item, amount, buttonEl) {
+let bidQueue = [];
+let processingBid = false;
 
-  if (sending) return;
-  sending = true;
+function queueBid(item, amount, buttonEl) {
+
+  bidQueue.push({ item, amount, buttonEl });
+
+  showToast("Bid queued...");
+
+  processQueue();
+}
+
+async function processQueue() {
+
+  if (processingBid) return;
+  if (bidQueue.length === 0) return;
+
+  processingBid = true;
+
+  const { item, amount, buttonEl } = bidQueue.shift();
 
   if (buttonEl) buttonEl.disabled = true;
 
   showToast("Submitting bid...");
 
-  await new Promise(r => setTimeout(r, Math.random() * 300));
+  await new Promise(r => setTimeout(r, 600 + Math.random() * 400));
 
   const formData = new URLSearchParams();
   formData.append("type", "bid");
@@ -268,7 +284,7 @@ async function placeBid(item, amount, buttonEl) {
   formData.append("userId", USER_ID);
   formData.append("userName", USER_NAME);
 
-  fetch(WEB_APP_URL, {
+  await fetch(WEB_APP_URL, {
     method: "POST",
     mode: "no-cors",
     body: formData
@@ -276,10 +292,16 @@ async function placeBid(item, amount, buttonEl) {
 
   setTimeout(async () => {
     await loadItems();
+
     showToast("Bid processed ✔");
-    sending = false;
+
     if (buttonEl) buttonEl.disabled = false;
-  }, 1500);
+
+    processingBid = false;
+
+    processQueue();
+
+  }, 1200);
 }
 
 // TOAST
