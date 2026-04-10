@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html>
 <head>
@@ -104,23 +105,23 @@ if (!USER_ID) {
   alert("Please check in first");
   window.location.href = "/";
 }
-  let lastBidTime = 0;
 
+let lastBidTime = 0;
 let ITEMS = [];
-let sending = false;
 let SHOWING_MY_BIDS = false;
+
+let bidQueue = [];
+let processingBid = false;
 
 // LOAD ITEMS
 async function loadItems() {
   const res = await fetch(WEB_APP_URL + "?action=getItems");
   ITEMS = await res.json();
 
-  if (!SHOWING_MY_BIDS) {
-    renderAuction();
-  }
+  if (!SHOWING_MY_BIDS) renderAuction();
 }
 
-// MAIN AUCTION VIEW
+// RENDER
 function renderAuction() {
 
   const container = document.getElementById("items");
@@ -183,81 +184,11 @@ function renderAuction() {
   });
 }
 
-// MY BIDS VIEW
-async function showMyBids() {
-
-  SHOWING_MY_BIDS = true;
-
-  const btn = document.getElementById("myBidsBtn");
-  btn.innerText = "Return to All Bids";
-  btn.onclick = returnToAuction;
-
-  const res = await fetch(WEB_APP_URL + "?action=getBids");
-  const bids = await res.json();
-
-  const myItemIds = new Set(
-    bids
-      .filter(b => String(b.userId) === String(USER_ID))
-      .map(b => String(b.itemId || b.item_id))
-  );
-
-  const myItems = ITEMS.filter(item =>
-    myItemIds.has(String(item.item_id))
-  );
-
-  const container = document.getElementById("items");
-  container.innerHTML = "";
-
-  if (myItems.length === 0) {
-    container.innerHTML = "<p>No bids yet</p>";
-    return;
-  }
-
-  myItems.forEach(item => {
-
-    const current = item.current_bid || 0;
-    const isWinning = String(item.current_winner) === String(USER_ID);
-
-    const div = document.createElement("div");
-    div.className = "item";
-
-    div.innerHTML = `
-      <div class="title">${item.item_name}</div>
-      <div class="bid">$${current}</div>
-
-      <div class="status">
-        ${isWinning
-          ? '<span style="color:#00ff88;">WINNING</span>'
-          : '<span style="color:#ff4d4d;">LOSING</span>'}
-      </div>
-
-      <div class="desc">${item["description"] || ''}</div>
-    `;
-
-    container.appendChild(div);
-  });
-}
-
-// RETURN
-function returnToAuction() {
-  SHOWING_MY_BIDS = false;
-
-  const btn = document.getElementById("myBidsBtn");
-  btn.innerText = "My Bids";
-  btn.onclick = showMyBids;
-
-  renderAuction();
-}
-
-// PLACE BID (UPDATED)
-let bidQueue = [];
-let processingBid = false;
-
+// QUEUE BID
 function queueBid(item, amount, buttonEl) {
 
   const now = Date.now();
 
-  // 🔥 PREVENT SPAM (2 second cooldown)
   if (now - lastBidTime < 2000) {
     showToast("Please wait before bidding again");
     return;
@@ -272,6 +203,7 @@ function queueBid(item, amount, buttonEl) {
   processQueue();
 }
 
+// PROCESS QUEUE
 async function processQueue() {
 
   if (processingBid) return;
@@ -281,11 +213,16 @@ async function processQueue() {
 
   const { item, amount, buttonEl } = bidQueue.shift();
 
-  if (buttonEl) buttonEl.disabled = true;
+  const parent = buttonEl?.closest(".item");
+  const buttons = parent?.querySelectorAll("button");
+
+  // 🔒 disable all buttons
+  buttons?.forEach(b => b.disabled = true);
 
   showToast("Submitting bid...");
 
- await new Promise(r => setTimeout(r, 2000 + Math.random() * 2000));
+  // 🔥 LONGER DELAY
+  await new Promise(r => setTimeout(r, 2000 + Math.random() * 2000));
 
   const formData = new URLSearchParams();
   formData.append("type", "bid");
@@ -302,17 +239,20 @@ async function processQueue() {
   });
 
   setTimeout(async () => {
+
     await loadItems();
 
-    showToast("Bid processed ✔");
+    showToast("Bid submitted ✔");
 
-    if (buttonEl) buttonEl.disabled = false;
+    // 🔓 re-enable AFTER processing + cooldown
+    setTimeout(() => {
+      buttons?.forEach(b => b.disabled = false);
+    }, 2000);
 
     processingBid = false;
-
     processQueue();
 
-  }, 1200);
+  }, 1500);
 }
 
 // TOAST
@@ -334,12 +274,10 @@ function showToast(message) {
 
   document.body.appendChild(toast);
 
-  setTimeout(() => {
-    toast.remove();
-  }, 2000);
+  setTimeout(() => toast.remove(), 2000);
 }
 
-// AUTO REFRESH
+// SLOW REFRESH
 setInterval(() => {
   loadItems();
 }, 15000);
@@ -351,3 +289,4 @@ loadItems();
 
 </body>
 </html>
+```
