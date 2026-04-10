@@ -1,4 +1,4 @@
-```html
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -116,11 +116,14 @@ let processingBid = false;
 // LOAD ITEMS
 async function loadItems() {
   const res = await fetch(WEB_APP_URL + "?action=getItems");
-  ITEMS = await res.json();
+
+  let data = await res.json();
+
+  // 🔥 FIX
+  ITEMS = Array.isArray(data) ? data : Object.values(data);
 
   if (!SHOWING_MY_BIDS) renderAuction();
 }
-
 // RENDER
 function renderAuction() {
 
