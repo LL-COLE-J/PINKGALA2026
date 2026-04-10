@@ -168,17 +168,22 @@ function filterGuests(searchText) {
     div.onclick = async () => {
 
       // prevent duplicate check-ins
-      if (!localStorage.getItem("CHECKED_IN")) {
-        try {
-          await fetch(WEB_APP_URL, {
-  method: "POST",
-  mode: "no-cors",
-  body: JSON.stringify({
-    type: "checkin",
-    userId: guest.id,
-    userName: guest.name
-  })
-});
+      try {
+
+  const formData = new URLSearchParams();
+  formData.append("type", "checkin");
+  formData.append("userId", guest.id);
+  formData.append("userName", guest.name);
+
+  await fetch(WEB_APP_URL, {
+    method: "POST",
+    mode: "no-cors",
+    body: formData
+  });
+
+} catch (e) {
+  console.log("Check-in failed", e);
+}
 
           localStorage.setItem("CHECKED_IN", "true");
 
