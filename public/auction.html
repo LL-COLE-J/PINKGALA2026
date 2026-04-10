@@ -141,6 +141,43 @@ input {
   opacity: 0.7;
 }
 
+  /* ITEM LAYOUT (LEFT = INFO, RIGHT = DESCRIPTION) */
+.item-row {
+  display: flex;
+  gap: 12px;
+}
+
+/* LEFT SIDE (existing content) */
+.item-main {
+  flex: 1;
+}
+
+/* RIGHT SIDE DESCRIPTION */
+.item-desc {
+  width: 40%;
+  font-size: 13px;
+  color: #ccc;
+  line-height: 1.4;
+  border-left: 1px solid #333;
+  padding-left: 10px;
+  font-family: 'Playfair Display', serif;
+}
+
+/* MOBILE STACK */
+@media (max-width: 480px) {
+  .item-row {
+    flex-direction: column;
+  }
+
+  .item-desc {
+    width: 100%;
+    border-left: none;
+    border-top: 1px solid #333;
+    padding-left: 0;
+    padding-top: 8px;
+  }
+}
+
   
 </style>
 </head>
@@ -191,25 +228,41 @@ function bindDataToCards() {
   container.innerHTML = "";
 
   ITEMS.forEach(item => {
-    const current = item.current_bid || item.starting_bid;
+
+    // 🔥 TRUE CURRENT BID LOGIC
+    const hasBids = item.current_bid && item.current_bid > 0;
+    const current = hasBids ? item.current_bid : item.starting_bid;
+
+    // 🔥 DYNAMIC INCREMENT (ALWAYS FROM SHEET)
     const increment = item.bid_increment || 50;
     const nextBid = current + increment;
 
+    // 🔥 SHOW BIDDER #
     const statusText = item.current_winner
-  ? `Winning: #${item.current_winner}`
-  : "No bids";
+      ? `Winning: #${item.current_winner}`
+      : "No bids";
 
     const div = document.createElement("div");
     div.className = "item";
 
     div.innerHTML = `
-      <div class="title">${item.item_name}</div>
-      <div class="bid">$${current}</div>
-      <div class="status">${statusText}</div>
+      <div class="item-row">
 
-      <button class="quick bidBtn">Bid $${nextBid}</button>
-      <input class="customBid" placeholder="Custom bid" />
-      <button class="submit submitBid">Submit</button>
+        <div class="item-main">
+          <div class="title">${item.item_name}</div>
+          <div class="bid">$${current}</div>
+          <div class="status">${statusText}</div>
+
+          <button class="quick bidBtn">Bid $${nextBid}</button>
+          <input class="customBid" placeholder="Custom bid" />
+          <button class="submit submitBid">Submit</button>
+        </div>
+
+        <div class="item-desc">
+          ${item.description || ""}
+        </div>
+
+      </div>
     `;
 
     const bidBtn = div.querySelector(".bidBtn");
@@ -219,7 +272,7 @@ function bindDataToCards() {
     // QUICK BID
     bidBtn.onclick = () => placeBid(item, nextBid);
 
-    // CUSTOM BID
+    // CUSTOM BID VALIDATION
     submit.onclick = () => {
       const value = Number(input.value);
 
@@ -229,14 +282,14 @@ function bindDataToCards() {
       }
 
       if (value < nextBid) {
-        alert(`Bid must be at least $${nextBid}`);
+        alert(`Minimum bid is $${nextBid}`);
         return;
       }
 
       placeBid(item, value);
     };
 
-    // HIGHLIGHT WINNER
+    // HIGHLIGHT CURRENT USER
     if (item.current_winner == USER_ID) {
       div.style.border = "2px solid #00ff88";
     }
