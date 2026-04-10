@@ -110,7 +110,7 @@ body {
 
 .enter-btn {
   margin-top: 20px;
-  padding: 12px 20px; 
+  padding: 12px 20px;
   background: black;
   color: white;
   border: none;
@@ -129,96 +129,113 @@ body {
 </div>
 
 <div class="container">
-  <input class="search" placeholder="SEARCH YOUR NAME" oninput="filterGuests(this.value)">
+  <input class="search" placeholder="Loading guest list..." oninput="filterGuests(this.value)">
   <div class="card" id="guestList"></div>
 </div>
 
-
-
 <script>
-const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzFeVWBQvxbh8AvC0HtN3wbcXga31CmbfeYef1opsgkc98omqTSjhaTANB5fw9e3-8N/exec";
+const API = "https://script.google.com/macros/s/AKfycbzFeVWBQvxbh8AvC0HtN3wbcXga31CmbfeYef1opsgkc98omqTSjhaTANB5fw9e3-8N/exec";
 
-let GUESTS = [];
+let guests = [];
+let guestsLoaded = false;
 
-// ===== LOAD GUESTS =====
+/* LOAD */
 async function loadGuests() {
-  try {
-    const res = await fetch(WEB_APP_URL + "?action=getGuests");
-    GUESTS = await res.json();
-  } catch (e) {
-    console.error("Failed to load guests", e);
-  }
+  const res = await fetch(API + "?action=getGuestsCheckin");
+  guests = await res.json();
+  guestsLoaded = true;
+
+  document.querySelector(".search").placeholder = "SEARCH YOUR NAME";
 }
 
-// ===== FILTER =====
-function filterGuests(searchText) {
-  const guestList = document.getElementById("guestList");
-  guestList.innerHTML = "";
+/* START LOAD ASAP */
+loadGuests();
 
-  const matches = GUESTS.filter(g =>
-    g.name.toLowerCase().includes(searchText.toLowerCase())
-  );
+/* SEARCH ONLY */
+function filterGuests(txt){
+  const box = document.getElementById("guestList");
 
-  matches.forEach(guest => {
-    const div = document.createElement("div");
-    div.className = "guest";
-    div.innerHTML = `${guest.name}`;
-
-    // 🔥 CHECK-IN ON CLICK (NOT BUTTON)
-    div.onclick = async () => {
-
-  try {
-    const formData = new URLSearchParams();
-    formData.append("type", "checkin");
-    formData.append("userId", guest.id);
-    formData.append("userName", guest.name);
-
-    await fetch(WEB_APP_URL, {
-      method: "POST",
-      mode: "no-cors",
-      body: formData
-    });
-
-  } catch (e) {
-    console.log("Check-in failed", e);
+  // 🔥 BLOCK UNTIL LOADED
+  if (!guestsLoaded) {
+    box.innerHTML = "<div style='text-align:center;padding:10px;'>Loading guests...</div>";
+    return;
   }
 
-  // store session
-  localStorage.setItem("USER_ID", guest.id);
-  localStorage.setItem("USER_NAME", guest.name);
+  if (!txt) {
+    box.innerHTML = "";
+    return;
+  }
 
-  // show popup
-  showGuestPopup(guest);
-};
+  const results = guests.filter(g =>
+    g.name.toLowerCase().includes(txt.toLowerCase())
+  );
 
-    guestList.appendChild(div);
+  box.innerHTML = "";
+
+  results.slice(0,15).forEach(g => {
+    const div = document.createElement("div");
+    div.className = "guest";
+    div.innerText = g.name;
+
+    div.onclick = () => showCard(g);
+
+    box.appendChild(div);
   });
 }
 
-// ===== POPUP (NO CHECK-IN HERE ANYMORE) =====
-function showGuestPopup(guest) {
+/* SHOW POPUP */
+function showCard(g){
+
+  // QUEUED WRITE (unchanged)
+  fetch(API, {
+    method:"POST",
+    body:new URLSearchParams({
+      action: "checkin",
+      bidder: g.bidder
+    })
+  });
+
+  const existing = document.querySelector(".overlay");
+  if (existing) existing.remove();
+
   const overlay = document.createElement("div");
   overlay.className = "overlay";
 
   overlay.innerHTML = `
     <div class="popup">
-      <h2>${guest.name}</h2>
-      <div class="info">Bidder #: ${guest.bidder || ""}</div>
-      <div class="info">Table: ${guest.table || ""}</div>
-      <button class="enter-btn">Enter Event</button>
+      <h2>${g.name}</h2>
+      <div class="info">Table ${g.table}</div>
+      <div class="info">Bidder #${g.bidder}</div>
+
+      <button class="enter-btn" id="enterBtn">
+        Enter Starting Bid
+      </button>
     </div>
   `;
 
+  overlay.onclick = (e) => {
+    if (e.target === overlay) overlay.remove();
+  };
+
   document.body.appendChild(overlay);
 
-  // 🚀 ONLY NAVIGATION NOW
-  overlay.querySelector(".enter-btn").onclick = () => {
-    window.location.href = "/auction.html";
+  const btn = overlay.querySelector("#enterBtn");
+  btn.onclick = () => {
+    enterAuction(g.bidder, g.table, g.name);
   };
 }
 
-// ===== INIT =====
-loadGuests();
+/* ENTER AUCTION */
+function enterAuction(bidder, table, name){
+
+  localStorage.setItem("bidder", bidder);
+  localStorage.setItem("table", table);
+  localStorage.setItem("name", name);
+
+  window.location.href =
+    `auction.html?bidder=${bidder}&table=${table}&name=${encodeURIComponent(name)}`;
+}
 </script>
+
 </body>
 </html>
