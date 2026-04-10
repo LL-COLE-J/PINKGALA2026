@@ -204,21 +204,30 @@ function queueBid(item, amount, buttonEl) {
 }
 
   async function sendBid(formData) {
+
   for (let i = 0; i < 5; i++) {
+
     try {
       await fetch(WEB_APP_URL, {
         method: "POST",
         body: formData
       });
+
+      // 🔥 ALWAYS WAIT BEFORE ASSUMING SUCCESS
+      await new Promise(r => setTimeout(r, 800));
+
       return true;
+
     } catch (e) {
       console.log("Retrying...", i);
-      await new Promise(r => setTimeout(r, 1500));
     }
+
+    // 🔥 ALWAYS BACKOFF (even if no error)
+    await new Promise(r => setTimeout(r, 1500 + Math.random() * 1000));
   }
+
   return false;
 }
-
 // PROCESS QUEUE
 async function processQueue() {
 
