@@ -90,13 +90,33 @@ input {
 
 <div class="container" id="items"></div>
 
-<script>
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  getFirestore,
+  collection,
+  doc,
+  onSnapshot,
+  runTransaction,
+  serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCTkto9F50vZZViyv3bY_gSDwh7ZfoMXAs",
+  authDomain: "pg-auction.firebaseapp.com",
+  projectId: "pg-auction",
+  storageBucket: "pg-auction.firebasestorage.app",
+  messagingSenderId: "870146780880",
+  appId: "1:870146780880:web:9d9c97e9a0ff8340bff8d5"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
 function goHome() {
   window.location.href = "/";
 }
-
-const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzFeVWBQvxbh8AvC0HtN3wbcXga31CmbfeYef1opsgkc98omqTSjhaTANB5fw9e3-8N/exec";
 
 const USER_ID = localStorage.getItem("USER_ID");
 const USER_NAME = localStorage.getItem("USER_NAME");
@@ -106,24 +126,19 @@ if (!USER_ID) {
   window.location.href = "/";
 }
 
-let lastBidTime = 0;
 let ITEMS = [];
 let SHOWING_MY_BIDS = false;
 
-let bidQueue = [];
-let processingBid = false;
+// ✅ REALTIME LOAD
+function loadItems() {
+  const itemsRef = collection(db, "items");
 
-// LOAD ITEMS
-async function loadItems() {
-  const res = await fetch(WEB_APP_URL + "?action=getItems");
-
-  let data = await res.json();
-
-  // 🔥 FIX
-  ITEMS = Array.isArray(data) ? data : Object.values(data);
-
-  if (!SHOWING_MY_BIDS) renderAuction();
+  onSnapshot(itemsRef, (snapshot) => {
+    ITEMS = snapshot.docs.map(doc => doc.data());
+    renderAuction();
+  });
 }
+
 // RENDER
 function renderAuction() {
 
@@ -156,7 +171,7 @@ function renderAuction() {
         : `<button class="quick bidBtn">Bid $${nextBid}</button>`
       }
 
-      <input class="customBid" placeholder="Custom bid">
+      <input id="bid-${item.item_id}" class="customBid" placeholder="Custom bid">
       <button class="submit submitBid">Submit</button>
 
       <div class="desc">${item["description"] || ''}</div>
@@ -167,7 +182,7 @@ function renderAuction() {
     const submit = div.querySelector(".submitBid");
 
     if (!isClosed) {
-      bidBtn.onclick = () => queueBid(item, nextBid, bidBtn);
+      bidBtn.onclick = () => submitBid(item.item_id, nextBid);
     }
 
     submit.onclick = () => {
@@ -180,141 +195,67 @@ function renderAuction() {
         return;
       }
 
-      queueBid(item, value, submit);
+      submitBid(item.item_id, value);
     };
 
     container.appendChild(div);
   });
 }
 
-// QUEUE BID
-function queueBid(item, amount, buttonEl) {
+// ✅ FIRESTORE BID (REPLACES GAS)
+async function submitBid(itemId, amount) {
 
-  const now = Date.now();
+  const itemRef = doc(db, "items", itemId);
 
-  if (now - lastBidTime < 2000) {
-    showToast("Please wait before bidding again");
-    return;
-  }
+  try {
 
-  lastBidTime = now;
+    await runTransaction(db, async (transaction) => {
 
-  bidQueue.push({ item, amount, buttonEl });
+      const itemSnap = await transaction.get(itemRef);
 
-  showToast("Bid queued...");
+      if (!itemSnap.exists()) throw "Item not found";
 
-  processQueue();
-}
+      const item = itemSnap.data();
 
-  async function sendBid(formData) {
+      const minBid = (item.current_bid || 0) + (item.bid_increment || 50);
 
-  for (let i = 0; i < 5; i++) {
+      if (amount < minBid) throw "Bid too low";
 
-    try {
-      await fetch(WEB_APP_URL, {
-        method: "POST",
-        body: formData
+      if ((item.status || "").toLowerCase() === "closed") {
+        throw "Bidding closed";
+      }
+
+      transaction.update(itemRef, {
+        current_bid: amount,
+        current_winner: USER_ID,
+        current_winner_name: USER_NAME,
+        last_updated: serverTimestamp()
       });
 
-      // 🔥 ALWAYS WAIT BEFORE ASSUMING SUCCESS
-      await new Promise(r => setTimeout(r, 800));
+      const bidRef = doc(collection(db, "bids"));
 
-      return true;
+      transaction.set(bidRef, {
+        timestamp: serverTimestamp(),
+        userId: USER_ID,
+        bidder_name: USER_NAME,
+        item_id: itemId,
+        item_name: item.item_name,
+        bid_amount: amount,
+        previous_bid: item.current_bid,
+        status: "accepted"
+      });
 
-    } catch (e) {
-      console.log("Retrying...", i);
-    }
+    });
 
-    // 🔥 ALWAYS BACKOFF (even if no error)
-    await new Promise(r => setTimeout(r, 1500 + Math.random() * 1000));
+  } catch (err) {
+    alert(err);
   }
-
-  return false;
 }
-// PROCESS QUEUE
-async function processQueue() {
-
-  if (processingBid) return;
-  if (bidQueue.length === 0) return;
-
-  processingBid = true;
-
-  const { item, amount, buttonEl } = bidQueue.shift();
-
-  const parent = buttonEl?.closest(".item");
-  const buttons = parent?.querySelectorAll("button");
-
-  // 🔒 disable all buttons
-  buttons?.forEach(b => b.disabled = true);
-
-  showToast("Submitting bid...");
-
-  // 🔥 LONGER DELAY
-  await new Promise(r => setTimeout(r, 2000 + Math.random() * 2000));
-
-  const formData = new URLSearchParams();
-  formData.append("type", "bid");
-  formData.append("itemId", item.item_id);
-  formData.append("itemName", item.item_name);
-  formData.append("amount", amount);
-  formData.append("userId", USER_ID);
-  formData.append("userName", USER_NAME);
-
- const success = await sendBid(formData);
-
-if (!success) {
-  showToast("Network busy — retrying...");
-}
-
-  setTimeout(async () => {
-
-    await loadItems();
-
-    showToast("Bid submitted ✔");
-
-    // 🔓 re-enable AFTER processing + cooldown
-    setTimeout(() => {
-      buttons?.forEach(b => b.disabled = false);
-    }, 2000);
-
-    processingBid = false;
-    processQueue();
-
-  }, 1500);
-}
-
-// TOAST
-function showToast(message) {
-  let toast = document.createElement("div");
-
-  toast.innerText = message;
-
-  toast.style.position = "fixed";
-  toast.style.bottom = "20px";
-  toast.style.left = "50%";
-  toast.style.transform = "translateX(-50%)";
-  toast.style.background = "#ff2d8d";
-  toast.style.color = "white";
-  toast.style.padding = "10px 16px";
-  toast.style.borderRadius = "10px";
-  toast.style.fontSize = "14px";
-  toast.style.zIndex = "9999";
-
-  document.body.appendChild(toast);
-
-  setTimeout(() => toast.remove(), 2000);
-}
-
-// SLOW REFRESH
-setInterval(() => {
-  loadItems();
-}, 15000);
 
 // INIT
 loadItems();
 
 </script>
-
 </body>
 </html>
 ```
