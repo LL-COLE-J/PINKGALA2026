@@ -231,7 +231,9 @@ function bindDataToCards() {
 
     // 🔥 TRUE CURRENT BID LOGIC
     const hasBids = item.current_bid && item.current_bid > 0;
-    const current = hasBids ? item.current_bid : item.starting_bid;
+    const base = item.starting_bid || 0;
+const bidAmount = item.current_bid || 0;
+const current = base + bidAmount;
 
     // 🔥 DYNAMIC INCREMENT (ALWAYS FROM SHEET)
     const increment = item.bid_increment || 50;
