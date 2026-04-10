@@ -198,6 +198,9 @@ function bindDataToCards() {
     const bidBtn = div.querySelector(".bidBtn");
     const input = div.querySelector(".customBid");
     const submit = div.querySelector(".submitBid");
+    input.addEventListener("input", () => {
+  window.lastInputTime = Date.now();
+});
 
     // ✅ BLOCK CLICK IF CLOSED
     if (!isClosed) {
@@ -259,8 +262,12 @@ async function placeBid(item, amount) {
   sending = false;
 }
 
-// ===== AUTO REFRESH =====
-setInterval(loadItems, 3000);
+// ===== SMART REFRESH =====
+setInterval(() => {
+  if (!window.lastInputTime || Date.now() - window.lastInputTime > 15000) {
+    loadItems();
+  }
+}, 5000);
 
 // ===== INIT =====
 loadItems();
