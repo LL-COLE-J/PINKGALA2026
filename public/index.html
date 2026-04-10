@@ -171,13 +171,14 @@ function filterGuests(searchText) {
       if (!localStorage.getItem("CHECKED_IN")) {
         try {
           await fetch(WEB_APP_URL, {
-            method: "POST",
-            body: JSON.stringify({
-              type: "checkin",
-              userId: guest.id,
-              userName: guest.name
-            })
-          });
+  method: "POST",
+  mode: "no-cors",
+  body: JSON.stringify({
+    type: "checkin",
+    userId: guest.id,
+    userName: guest.name
+  })
+});
 
           localStorage.setItem("CHECKED_IN", "true");
 
