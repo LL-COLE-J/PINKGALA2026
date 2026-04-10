@@ -7,28 +7,15 @@
 
 <style>
 * { box-sizing: border-box; }
+body { margin: 0; font-family: Arial; background: #000; color: white; }
 
-body {
-  margin: 0;
-  font-family: Arial;
-  background: #000;
-  color: white;
-}
-
-/* HEADER */
 .header {
   text-align: center;
   padding: 18px 12px;
   border-bottom: 2px solid #ff2d8d;
 }
+.header h1 { color: #ff2d8d; margin: 0; }
 
-.header h1 {
-  color: #ff2d8d;
-  font-size: 24px;
-  margin: 0;
-}
-
-/* CONTAINER */
 .container {
   width: 100%;
   max-width: 600px;
@@ -36,7 +23,6 @@ body {
   padding: 12px;
 }
 
-/* ITEM CARD */
 .item {
   background: #111;
   border: 2px solid #22c55e;
@@ -45,72 +31,24 @@ body {
   margin-bottom: 16px;
 }
 
-/* TITLE */
-.title {
-  font-weight: bold;
-  font-size: 18px;
-  margin-bottom: 6px;
-}
+.title { font-weight: bold; }
+.bid { font-size: 28px; color: #22c55e; }
+.status { margin-bottom: 10px; }
 
-/* BID */
-.bid {
-  font-size: 34px;
-  color: #22c55e;
-  margin-bottom: 6px;
-}
-
-/* STATUS */
-.status {
-  margin-bottom: 12px;
-  font-size: 14px;
-}
-
-.win { color: #22c55e; }
-.lose { color: #ef4444; }
-
-/* BUTTONS */
 button {
   width: 100%;
-  padding: 14px;
+  padding: 12px;
   border-radius: 10px;
   border: none;
-  margin-bottom: 10px;
-  font-size: 16px;
+  margin-bottom: 8px;
 }
 
-.quick {
-  background: #ff2d8d;
-  color: white;
-  font-weight: bold;
-}
+.quick { background: #ff2d8d; color: white; }
+.submit { background: #333; color: white; }
 
-.submit {
-  background: #333;
-  color: white;
-}
-
-/* INPUT */
-input {
-  width: 100%;
-  padding: 14px;
-  border-radius: 10px;
-  border: none;
-  margin-bottom: 10px;
-}
-
-/* BID BUTTON */
-.bidBtn {
-  background: linear-gradient(180deg, #ff2d8d 0%, #e60073 100%);
-  color: #fff;
-  font-weight: 700;
-  border-radius: 10px;
-}
-
-/* DISABLED */
 .bidBtn:disabled {
   background: #555;
   color: #999;
-  cursor: not-allowed;
 }
 </style>
 </head>
@@ -119,7 +57,6 @@ input {
 
 <div class="header">
   <h1>2026 Pink Gala Auction</h1>
-
   <div style="margin-top:10px;">
     <button class="submit" onclick="goHome()">Home</button>
     <button id="myBidsBtn" class="submit" onclick="showMyBids()">My Bids</button>
@@ -127,12 +64,11 @@ input {
 </div>
 
 <div class="container" id="items"></div>
+<div class="container" id="myBids" style="display:none;"></div>
 
 <script>
 
-function goHome() {
-  window.location.href = "/";
-}
+function goHome() { window.location.href = "/"; }
 
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzFeVWBQvxbh8AvC0HtN3wbcXga31CmbfeYef1opsgkc98omqTSjhaTANB5fw9e3-8N/exec";
 
@@ -147,144 +83,29 @@ if (!USER_ID) {
 let ITEMS = [];
 let sending = false;
 
-  let showingMyBids = false;
-
-async function showMyBids() {
-  showingMyBids = !showingMyBids;
-
-  const btn = document.getElementById("myBidsBtn");
-
-  if (showingMyBids) {
-    btn.innerText = "Return to All Bids";
-
-    try {
-      const res = await fetch(WEB_APP_URL + "?action=getBids");
-      const bids = await res.json();
-
-      // 🔥 find items user has bid on
-      const myItemIds = new Set(
-        bids
-          .filter(b => String(b.userId) === String(USER_ID))
-          .map(b => String(b.itemId))
-      );
-
-      // 🔥 filter current items
-      const filtered = ITEMS.filter(item =>
-        myItemIds.has(String(item.item_id))
-      );
-
-      bindDataToCardsFiltered(filtered);
-
-    } catch (e) {
-      console.error("My Bids failed", e);
-    }
-
-  } else {
-    btn.innerText = "My Bids";
-    bindDataToCards();
-  }
-}
-
-// ===== LOAD ITEMS =====
+// =====================
+// LOAD ITEMS
+// =====================
 async function loadItems() {
-  try {
-    const res = await fetch(WEB_APP_URL + "?action=getItems");
-    ITEMS = await res.json();
-    bindDataToCards();
-  } catch (e) {
-    console.error("Load failed", e);
-  }
+  const res = await fetch(WEB_APP_URL + "?action=getItems");
+  ITEMS = await res.json();
+  renderAuction();
 }
 
-  function bindDataToCardsFiltered(filteredItems) {
-  const container = document.getElementById("items");
-  container.innerHTML = "";
-
-  filteredItems.forEach(item => {
-
-    const current = item.current_bid || 0;
-    const increment = item.bid_increment || 50;
-    const nextBid = current + increment;
-
-    const isClosed = (item.status || "").toString().trim().toLowerCase() === "closed";
-
-    const isWinning = String(item.current_winner) === String(USER_ID);
-
-    const statusText = isWinning
-      ? `<span style="color:#00ff88;">Winning</span>`
-      : `<span style="color:#ff4d4d;">Losing</span>`;
-
-    const div = document.createElement("div");
-    div.className = "item";
-
-    div.innerHTML = `
-      <div class="title">${item.item_name}</div>
-      <div class="bid">$${current}</div>
-      <div class="status">${statusText}</div>
-
-      ${isClosed
-        ? `<button class="quick bidBtn" disabled>Closed</button>`
-        : `<button class="quick bidBtn">Bid $${nextBid}</button>`
-      }
-
-      <input class="customBid" placeholder="Custom bid" />
-      <button class="submit submitBid">Submit</button>
-    `;
-
-    const bidBtn = div.querySelector(".bidBtn");
-    const input = div.querySelector(".customBid");
-    const submit = div.querySelector(".submitBid");
-
-    if (!isClosed) {
-      bidBtn.onclick = () => placeBid(item, nextBid);
-    }
-
-    submit.onclick = () => {
-      if (isClosed) return;
-
-      const value = Number(input.value);
-
-      if (!value || isNaN(value)) {
-        alert("Enter a valid number");
-        return;
-      }
-
-      if (value < nextBid) {
-        alert(`Minimum bid is $${nextBid}`);
-        return;
-      }
-
-      placeBid(item, value);
-    };
-
-    if (isWinning) {
-      div.style.border = "2px solid #00ff88";
-    }
-
-    container.appendChild(div);
-  });
-}
-  
-
-// ===== RENDER =====
-function bindDataToCards() {
+// =====================
+// MAIN AUCTION VIEW
+// =====================
+function renderAuction() {
   const container = document.getElementById("items");
   container.innerHTML = "";
 
   ITEMS.forEach(item => {
 
-    // ✅ FIX: NO MORE DOUBLING
     const current = item.current_bid || 0;
-
     const increment = item.bid_increment || 50;
     const nextBid = current + increment;
 
-    // ✅ FIX: STATUS CONTROL
     const isClosed = (item.status || "").toString().trim().toLowerCase() === "closed";
-
-    const statusText = item.current_winner
-      ? `Winning: #${item.current_winner}`
-      : "No bids";
 
     const div = document.createElement("div");
     div.className = "item";
@@ -292,25 +113,24 @@ function bindDataToCards() {
     div.innerHTML = `
       <div class="title">${item.item_name}</div>
       <div class="bid">$${current}</div>
-      <div class="status">${statusText}</div>
 
       ${isClosed
-        ? `<button class="quick bidBtn" disabled>Closed</button>`
+        ? `<button class="bidBtn" disabled>Closed</button>`
         : `<button class="quick bidBtn">Bid $${nextBid}</button>`
       }
 
-      <input class="customBid" placeholder="Custom bid" />
+      <input class="customBid" placeholder="Custom bid">
       <button class="submit submitBid">Submit</button>
     `;
 
     const bidBtn = div.querySelector(".bidBtn");
     const input = div.querySelector(".customBid");
     const submit = div.querySelector(".submitBid");
-    input.addEventListener("input", () => {
-  window.lastInputTime = Date.now();
-});
 
-    // ✅ BLOCK CLICK IF CLOSED
+    input.addEventListener("input", () => {
+      window.lastInputTime = Date.now();
+    });
+
     if (!isClosed) {
       bidBtn.onclick = () => placeBid(item, nextBid);
     }
@@ -319,68 +139,114 @@ function bindDataToCards() {
       if (isClosed) return;
 
       const value = Number(input.value);
-
-      if (!value || isNaN(value)) {
-        alert("Enter a valid number");
-        return;
-      }
-
-      if (value < nextBid) {
-        alert(`Minimum bid is $${nextBid}`);
-        return;
-      }
+      if (!value || value < nextBid) return alert("Invalid bid");
 
       placeBid(item, value);
     };
-
-    if (item.current_winner == USER_ID) {
-      div.style.border = "2px solid #00ff88";
-    }
 
     container.appendChild(div);
   });
 }
 
-// ===== PLACE BID =====
+// =====================
+// MY BIDS VIEW
+// =====================
+async function showMyBids() {
+
+  document.getElementById("items").style.display = "none";
+  document.getElementById("myBids").style.display = "block";
+
+  const btn = document.getElementById("myBidsBtn");
+  btn.innerText = "Return to All Bids";
+  btn.onclick = returnToAuction;
+
+  const res = await fetch(WEB_APP_URL + "?action=getBids");
+  const bids = await res.json();
+
+  const myItemIds = new Set(
+    bids
+      .filter(b => String(b.userId) === String(USER_ID))
+      .map(b => String(b.itemId))
+  );
+
+  const myItems = ITEMS.filter(item =>
+    myItemIds.has(String(item.item_id))
+  );
+
+  const container = document.getElementById("myBids");
+  container.innerHTML = "";
+
+  myItems.forEach(item => {
+
+    const current = item.current_bid || 0;
+
+    const isWinning = String(item.current_winner) === String(USER_ID);
+
+    const div = document.createElement("div");
+    div.className = "item";
+
+    div.innerHTML = `
+      <div class="title">${item.item_name}</div>
+      <div class="bid">$${current}</div>
+      <div class="status">
+        ${isWinning
+          ? '<span style="color:#00ff88;">WINNING</span>'
+          : '<span style="color:#ff4d4d;">LOSING</span>'}
+      </div>
+    `;
+
+    container.appendChild(div);
+  });
+}
+
+// =====================
+// RETURN
+// =====================
+function returnToAuction() {
+  document.getElementById("items").style.display = "block";
+  document.getElementById("myBids").style.display = "none";
+
+  const btn = document.getElementById("myBidsBtn");
+  btn.innerText = "My Bids";
+  btn.onclick = showMyBids;
+}
+
+// =====================
+// BID
+// =====================
 async function placeBid(item, amount) {
   if (sending) return;
   sending = true;
 
-  try {
-    await fetch(WEB_APP_URL, {
-      method: "POST",
-      mode: "no-cors",
-      body: JSON.stringify({
-        type: "bid",
-        itemId: item.item_id,
-        itemName: item.item_name,
-        amount: amount,
-        userId: USER_ID,
-        userName: USER_NAME
-      })
-    });
+  await fetch(WEB_APP_URL, {
+    method: "POST",
+    mode: "no-cors",
+    body: JSON.stringify({
+      type: "bid",
+      itemId: item.item_id,
+      itemName: item.item_name,
+      amount,
+      userId: USER_ID,
+      userName: USER_NAME
+    })
+  });
 
-    await loadItems();
-
-  } catch (e) {
-    console.error(e);
-    alert("Error placing bid");
-  }
-
+  await loadItems();
   sending = false;
 }
 
-// ===== SMART REFRESH =====
+// =====================
+// SMART REFRESH
+// =====================
 setInterval(() => {
   if (!window.lastInputTime || Date.now() - window.lastInputTime > 15000) {
     loadItems();
   }
 }, 5000);
 
-// ===== INIT =====
+// INIT
 loadItems();
 
 </script>
-
 </body>
 </html>
