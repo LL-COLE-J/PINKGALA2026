@@ -44,6 +44,12 @@ body {
 .bid { font-size: 28px; color: #22c55e; }
 .status { margin-bottom: 10px; }
 
+.desc {
+  color: #ccc;
+  font-size: 0.9rem;
+  margin-bottom: 6px;
+}
+
 button {
   width: 100%;
   padding: 12px;
@@ -135,12 +141,14 @@ function renderAuction() {
 
     div.innerHTML = `
       <div class="title">${item.item_name}</div>
+      <div class="desc">${item["description"] || ''}</div>
       <div class="bid">$${current}</div>
-<div class="status">
-  ${item.current_winner
-    ? `Winning: #${item.current_winner}`
-    : 'No bids'}
-</div>
+
+      <div class="status">
+        ${item.current_winner
+          ? `Winning: #${item.current_winner}`
+          : 'No bids'}
+      </div>
 
       ${isClosed
         ? `<button class="bidBtn" disabled>Closed</button>`
@@ -181,7 +189,7 @@ function renderAuction() {
 }
 
 // =====================
-// MY BIDS (REAL VIEW)
+// MY BIDS VIEW
 // =====================
 async function showMyBids() {
 
@@ -197,7 +205,7 @@ async function showMyBids() {
   const myItemIds = new Set(
     bids
       .filter(b => String(b.userId) === String(USER_ID))
-     .map(b => String(b.itemId || b.item_id))
+      .map(b => String(b.itemId || b.item_id))
   );
 
   const myItems = ITEMS.filter(item =>
@@ -222,7 +230,9 @@ async function showMyBids() {
 
     div.innerHTML = `
       <div class="title">${item.item_name}</div>
+      <div class="desc">${item["description"] || ''}</div>
       <div class="bid">$${current}</div>
+
       <div class="status">
         ${isWinning
           ? '<span style="color:#00ff88;">WINNING</span>'
