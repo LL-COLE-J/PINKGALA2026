@@ -260,18 +260,24 @@ async function placeBid(item, amount) {
   if (sending) return;
   sending = true;
 
+  const formData = new URLSearchParams();
+  formData.append("type", "bid");
+  formData.append("itemId", item.item_id);
+  formData.append("itemName", item.item_name);
+  formData.append("amount", amount);
+  formData.append("userId", USER_ID);
+  formData.append("userName", USER_NAME);
+
   await fetch(WEB_APP_URL, {
     method: "POST",
     mode: "no-cors",
-    body: JSON.stringify({
-      type: "bid",
-      itemId: item.item_id,
-      itemName: item.item_name,
-      amount,
-      userId: USER_ID,
-      userName: USER_NAME
-    })
+    body: formData
   });
+
+  await loadItems();
+
+  sending = false;
+}
 
   await loadItems();
 
