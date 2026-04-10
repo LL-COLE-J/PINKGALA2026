@@ -195,9 +195,9 @@ function bindDataToCards() {
     const increment = item.bid_increment || 50;
     const nextBid = current + increment;
 
-    const statusText = item.current_winner_name
-      ? `Winning: ${item.current_winner_name}`
-      : "No bids";
+    const statusText = item.current_winner
+  ? `Winning: #${item.current_winner}`
+  : "No bids";
 
     const div = document.createElement("div");
     div.className = "item";
