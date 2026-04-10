@@ -99,7 +99,9 @@ import {
   doc,
   onSnapshot,
   runTransaction,
-  serverTimestamp
+  serverTimestamp,
+  addDoc,
+  updateDoc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -210,54 +212,65 @@ function renderAuction() {
 }
 
 // ✅ FIRESTORE BID (REPLACES GAS)
-async function submitBid(itemId, amount) {
+async function submitBid(itemId, bidAmount) {
 
-  const itemRef = doc(db, "items", itemId);
+  const bidsRef = collection(db, "bids");
+
+  // 🔥 log bid attempt FIRST
+  const bidDocRef = await addDoc(bidsRef, {
+    item_id: itemId,
+    bidder_id: USER_ID,
+    bidder_name: USER_NAME,
+    bid_amount: bidAmount,
+    timestamp: new Date(),
+    status: "pending"
+  });
 
   try {
 
+    const itemRef = doc(db, "items", itemId);
+
     await runTransaction(db, async (transaction) => {
 
-      const itemSnap = await transaction.get(itemRef);
+      const itemDoc = await transaction.get(itemRef);
 
-      if (!itemSnap.exists()) throw "Item not found";
+      if (!itemDoc.exists()) throw "Item not found";
 
-      const item = itemSnap.data();
+      const item = itemDoc.data();
+      const current = item.current_bid || 0;
 
-      const minBid = (item.current_bid || 0) + (item.bid_increment || 50);
-
-      if (amount < minBid) throw "Bid too low";
-
-      if ((item.status || "").toLowerCase() === "closed") {
-        throw "Bidding closed";
+      if (bidAmount <= current) {
+        throw "Bid too low";
       }
 
+      // ✅ update item
       transaction.update(itemRef, {
-        current_bid: amount,
+        current_bid: bidAmount,
         current_winner: USER_ID,
         current_winner_name: USER_NAME,
         last_updated: serverTimestamp()
       });
 
-      const bidRef = doc(collection(db, "bids"));
-
-      transaction.set(bidRef, {
-        timestamp: serverTimestamp(),
-        userId: USER_ID,
-        bidder_name: USER_NAME,
-        item_id: itemId,
-        item_name: item.item_name,
-        bid_amount: amount,
-        previous_bid: item.current_bid,
-        status: "accepted"
-      });
-
     });
 
-  } catch (err) {
-    alert(err);
+    // ✅ mark success
+    await updateDoc(bidDocRef, {
+      status: "accepted"
+    });
+
+  } catch (e) {
+
+    // ❌ mark failure
+    await updateDoc(bidDocRef, {
+      status: "rejected"
+    });
+
+    alert(e);
+    console.error("Bid failed:", e);
   }
 }
+    
+
 
 // INIT
 loadItems();
