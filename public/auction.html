@@ -104,6 +104,7 @@ if (!USER_ID) {
   alert("Please check in first");
   window.location.href = "/";
 }
+  let lastBidTime = 0;
 
 let ITEMS = [];
 let sending = false;
@@ -254,6 +255,16 @@ let processingBid = false;
 
 function queueBid(item, amount, buttonEl) {
 
+  const now = Date.now();
+
+  // 🔥 PREVENT SPAM (2 second cooldown)
+  if (now - lastBidTime < 2000) {
+    showToast("Please wait before bidding again");
+    return;
+  }
+
+  lastBidTime = now;
+
   bidQueue.push({ item, amount, buttonEl });
 
   showToast("Bid queued...");
@@ -274,7 +285,7 @@ async function processQueue() {
 
   showToast("Submitting bid...");
 
-  await new Promise(r => setTimeout(r, 600 + Math.random() * 400));
+ await new Promise(r => setTimeout(r, 1200 + Math.random() * 800));
 
   const formData = new URLSearchParams();
   formData.append("type", "bid");
