@@ -135,9 +135,12 @@ function loadItems() {
 
   onSnapshot(itemsRef, (snapshot) => {
     ITEMS = snapshot.docs.map(doc => ({
-  id: doc.id,
-  ...doc.data()
-}));
+      id: doc.id,
+      ...doc.data()
+    }));
+
+    renderAuction(); // 🔥 THIS WAS MISSING
+  });
 }
 
 // RENDER
