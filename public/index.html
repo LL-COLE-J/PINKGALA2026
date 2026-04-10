@@ -246,6 +246,12 @@ function showCard(g){
 
 /* REDIRECT */
 function enterAuction(bidder, table, name){
+
+  // ✅ FIX: match auction expectations
+  localStorage.setItem("USER_ID", bidder);
+  localStorage.setItem("USER_NAME", name);
+
+  // (optional safety — keep old keys)
   localStorage.setItem("bidder", bidder);
   localStorage.setItem("table", table);
   localStorage.setItem("name", name);
