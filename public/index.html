@@ -8,7 +8,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Inter:wght@400;600&display=swap" rel="stylesheet">
 
 <style>
-
 .ribbon-img {
   width: 28px;
   max-width: 8vw;
@@ -24,7 +23,6 @@ body {
   color: white;
 }
 
-/* HEADER */
 .header {
   text-align: center;
   padding: 40px 20px 20px;
@@ -37,14 +35,12 @@ body {
   font-size: 20px;
 }
 
-/* CONTAINER */
 .container {
   max-width: 500px;
   margin: auto;
   padding: 15px;
 }
 
-/* SEARCH */
 .search {
   width: 100%;
   padding: 14px;
@@ -58,7 +54,6 @@ body {
   margin-bottom: 15px;
 }
 
-/* LIST */
 .card {
   background: #111;
   border-radius: 14px;
@@ -75,7 +70,6 @@ body {
   font-weight: bold;
 }
 
-/* MODAL */
 .overlay {
   position: fixed;
   top: 0;
@@ -89,7 +83,6 @@ body {
   z-index: 999;
 }
 
-/* POPUP CARD */
 .popup {
   background: #ff2d8d;
   padding: 25px 20px;
@@ -129,7 +122,7 @@ body {
 </div>
 
 <div class="container">
-  <input class="search" placeholder="Loading guest list..." oninput="filterGuests(this.value)">
+  <input class="search" placeholder="Start typing your name..." oninput="filterGuests(this.value)">
   <div class="card" id="guestList"></div>
 </div>
 
@@ -138,8 +131,9 @@ const API = "https://script.google.com/macros/s/AKfycbzFeVWBQvxbh8AvC0HtN3wbcXga
 
 let guests = [];
 let guestsLoaded = false;
+let lastSearch = "";
 
-/* LOAD (CORS-SAFE) */
+/* LOAD */
 async function loadGuests() {
   try {
     const res = await fetch(API + "?action=getGuestsCheckin");
@@ -150,9 +144,20 @@ async function loadGuests() {
     }
 
     guests = JSON.parse(text);
+
+    // safety: ensure array
+    if (!Array.isArray(guests)) {
+      guests = Object.values(guests);
+    }
+
     guestsLoaded = true;
 
     document.querySelector(".search").placeholder = "SEARCH YOUR NAME";
+
+    // 🔥 auto-run search if user already typed
+    if (lastSearch) {
+      filterGuests(lastSearch);
+    }
 
   } catch (err) {
     console.error("LOAD FAILED:", err);
@@ -162,11 +167,13 @@ async function loadGuests() {
   }
 }
 
-/* START LOAD ASAP */
+/* START LOAD */
 loadGuests();
 
 /* SEARCH */
 function filterGuests(txt){
+  lastSearch = txt;
+
   const box = document.getElementById("guestList");
 
   if (!guestsLoaded) {
@@ -180,7 +187,7 @@ function filterGuests(txt){
   }
 
   const results = guests.filter(g =>
-    g.name.toLowerCase().includes(txt.toLowerCase())
+    (g.name || "").toLowerCase().includes(txt.toLowerCase())
   );
 
   box.innerHTML = "";
@@ -196,10 +203,9 @@ function filterGuests(txt){
   });
 }
 
-/* SHOW POPUP */
+/* POPUP */
 function showCard(g){
 
-  // WRITE CHECK-IN
   fetch(API, {
     method:"POST",
     body:new URLSearchParams({
@@ -238,9 +244,8 @@ function showCard(g){
   };
 }
 
-/* ENTER AUCTION */
+/* REDIRECT */
 function enterAuction(bidder, table, name){
-
   localStorage.setItem("bidder", bidder);
   localStorage.setItem("table", table);
   localStorage.setItem("name", name);
