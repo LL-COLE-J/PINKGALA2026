@@ -114,6 +114,7 @@ let SHOWING_MY_BIDS = false;
 async function loadItems() {
   const res = await fetch(WEB_APP_URL + "?action=getItems");
   ITEMS = await res.json();
+  console.log(ITEMS);
 
   if (!SHOWING_MY_BIDS) {
     renderAuction();
