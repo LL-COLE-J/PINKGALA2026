@@ -7,17 +7,26 @@
 
 <style>
 * { box-sizing: border-box; }
-body { margin: 0; font-family: Arial; background: #000; color: white; }
+
+body {
+  margin: 0;
+  font-family: Arial;
+  background: #000;
+  color: white;
+}
 
 .header {
   text-align: center;
   padding: 18px 12px;
   border-bottom: 2px solid #ff2d8d;
 }
-.header h1 { color: #ff2d8d; margin: 0; }
+
+.header h1 {
+  color: #ff2d8d;
+  margin: 0;
+}
 
 .container {
-  width: 100%;
   max-width: 600px;
   margin: auto;
   padding: 12px;
@@ -50,6 +59,14 @@ button {
   background: #555;
   color: #999;
 }
+
+input {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  margin-bottom: 8px;
+}
 </style>
 </head>
 
@@ -64,11 +81,12 @@ button {
 </div>
 
 <div class="container" id="items"></div>
-<div class="container" id="myBids" style="display:none;"></div>
 
 <script>
 
-function goHome() { window.location.href = "/"; }
+function goHome() {
+  window.location.href = "/";
+}
 
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzFeVWBQvxbh8AvC0HtN3wbcXga31CmbfeYef1opsgkc98omqTSjhaTANB5fw9e3-8N/exec";
 
@@ -82,6 +100,7 @@ if (!USER_ID) {
 
 let ITEMS = [];
 let sending = false;
+let SHOWING_MY_BIDS = false;
 
 // =====================
 // LOAD ITEMS
@@ -89,13 +108,17 @@ let sending = false;
 async function loadItems() {
   const res = await fetch(WEB_APP_URL + "?action=getItems");
   ITEMS = await res.json();
-  renderAuction();
+
+  if (!SHOWING_MY_BIDS) {
+    renderAuction();
+  }
 }
 
 // =====================
-// MAIN AUCTION VIEW
+// AUCTION VIEW
 // =====================
 function renderAuction() {
+
   const container = document.getElementById("items");
   container.innerHTML = "";
 
@@ -139,7 +162,11 @@ function renderAuction() {
       if (isClosed) return;
 
       const value = Number(input.value);
-      if (!value || value < nextBid) return alert("Invalid bid");
+
+      if (!value || value < nextBid) {
+        alert("Invalid bid");
+        return;
+      }
 
       placeBid(item, value);
     };
@@ -149,12 +176,11 @@ function renderAuction() {
 }
 
 // =====================
-// MY BIDS VIEW
+// MY BIDS (REAL VIEW)
 // =====================
 async function showMyBids() {
 
-  document.getElementById("items").style.display = "none";
-  document.getElementById("myBids").style.display = "block";
+  SHOWING_MY_BIDS = true;
 
   const btn = document.getElementById("myBidsBtn");
   btn.innerText = "Return to All Bids";
@@ -173,13 +199,17 @@ async function showMyBids() {
     myItemIds.has(String(item.item_id))
   );
 
-  const container = document.getElementById("myBids");
+  const container = document.getElementById("items");
   container.innerHTML = "";
+
+  if (myItems.length === 0) {
+    container.innerHTML = "<p>No bids yet</p>";
+    return;
+  }
 
   myItems.forEach(item => {
 
     const current = item.current_bid || 0;
-
     const isWinning = String(item.current_winner) === String(USER_ID);
 
     const div = document.createElement("div");
@@ -203,18 +233,20 @@ async function showMyBids() {
 // RETURN
 // =====================
 function returnToAuction() {
-  document.getElementById("items").style.display = "block";
-  document.getElementById("myBids").style.display = "none";
+  SHOWING_MY_BIDS = false;
 
   const btn = document.getElementById("myBidsBtn");
   btn.innerText = "My Bids";
   btn.onclick = showMyBids;
+
+  renderAuction();
 }
 
 // =====================
-// BID
+// PLACE BID
 // =====================
 async function placeBid(item, amount) {
+
   if (sending) return;
   sending = true;
 
@@ -232,6 +264,7 @@ async function placeBid(item, amount) {
   });
 
   await loadItems();
+
   sending = false;
 }
 
@@ -248,5 +281,6 @@ setInterval(() => {
 loadItems();
 
 </script>
+
 </body>
 </html>
