@@ -45,9 +45,10 @@ body {
 .status { margin-bottom: 10px; }
 
 .desc {
-  color: #ccc;
-  font-size: 0.9rem;
-  margin-bottom: 6px;
+  color: #aaa;
+  font-size: 0.85rem;
+  margin-top: 10px;
+  line-height: 1.3;
 }
 
 button {
@@ -108,22 +109,17 @@ let ITEMS = [];
 let sending = false;
 let SHOWING_MY_BIDS = false;
 
-// =====================
 // LOAD ITEMS
-// =====================
 async function loadItems() {
   const res = await fetch(WEB_APP_URL + "?action=getItems");
   ITEMS = await res.json();
-  console.log(ITEMS);
 
   if (!SHOWING_MY_BIDS) {
     renderAuction();
   }
 }
 
-// =====================
-// AUCTION VIEW
-// =====================
+// MAIN AUCTION VIEW
 function renderAuction() {
 
   const container = document.getElementById("items");
@@ -142,7 +138,6 @@ function renderAuction() {
 
     div.innerHTML = `
       <div class="title">${item.item_name}</div>
-      <div class="desc">${item["description"] || ''}</div>
       <div class="bid">$${current}</div>
 
       <div class="status">
@@ -158,6 +153,9 @@ function renderAuction() {
 
       <input class="customBid" placeholder="Custom bid">
       <button class="submit submitBid">Submit</button>
+
+      <!-- 🔥 MOVED DESCRIPTION HERE -->
+      <div class="desc">${item["description"] || ''}</div>
     `;
 
     const bidBtn = div.querySelector(".bidBtn");
@@ -189,9 +187,7 @@ function renderAuction() {
   });
 }
 
-// =====================
 // MY BIDS VIEW
-// =====================
 async function showMyBids() {
 
   SHOWING_MY_BIDS = true;
@@ -231,7 +227,6 @@ async function showMyBids() {
 
     div.innerHTML = `
       <div class="title">${item.item_name}</div>
-      <div class="desc">${item["description"] || ''}</div>
       <div class="bid">$${current}</div>
 
       <div class="status">
@@ -239,15 +234,16 @@ async function showMyBids() {
           ? '<span style="color:#00ff88;">WINNING</span>'
           : '<span style="color:#ff4d4d;">LOSING</span>'}
       </div>
+
+      <!-- 🔥 MOVED DESCRIPTION HERE -->
+      <div class="desc">${item["description"] || ''}</div>
     `;
 
     container.appendChild(div);
   });
 }
 
-// =====================
-// RETURN
-// =====================
+// RETURN TO AUCTION
 function returnToAuction() {
   SHOWING_MY_BIDS = false;
 
@@ -258,9 +254,7 @@ function returnToAuction() {
   renderAuction();
 }
 
-// =====================
 // PLACE BID
-// =====================
 async function placeBid(item, amount) {
 
   if (sending) return;
@@ -284,9 +278,7 @@ async function placeBid(item, amount) {
   sending = false;
 }
 
-// =====================
-// SMART REFRESH
-// =====================
+// AUTO REFRESH
 setInterval(() => {
   if (!window.lastInputTime || Date.now() - window.lastInputTime > 15000) {
     loadItems();
