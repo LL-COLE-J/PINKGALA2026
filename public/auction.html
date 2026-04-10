@@ -285,7 +285,7 @@ async function processQueue() {
 
   showToast("Submitting bid...");
 
- await new Promise(r => setTimeout(r, 2000 + Math.random() * 1500));
+ await new Promise(r => setTimeout(r, 2000 + Math.random() * 2000));
 
   const formData = new URLSearchParams();
   formData.append("type", "bid");
