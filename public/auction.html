@@ -192,7 +192,7 @@ async function showMyBids() {
   const myItemIds = new Set(
     bids
       .filter(b => String(b.userId) === String(USER_ID))
-      .map(b => String(b.itemId))
+     .map(b => String(b.itemId || b.item_id))
   );
 
   const myItems = ITEMS.filter(item =>
