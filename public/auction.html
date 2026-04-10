@@ -175,7 +175,7 @@ function renderAuction() {
         : `<button class="quick bidBtn">Bid $${nextBid}</button>`
       }
 
-      <input id="bid-${item.item_id}" class="customBid" placeholder="Custom bid">
+      <input id="bid-${item.id}" class="customBid" placeholder="Custom bid">
       <button class="submit submitBid">Submit</button>
 
       <div class="desc">${item["description"] || ''}</div>
