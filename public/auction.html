@@ -172,7 +172,7 @@ function bindDataToCards() {
     const nextBid = current + increment;
 
     // ✅ FIX: STATUS CONTROL
-    const isClosed = (item.status || "").toLowerCase() === "closed";
+    const isClosed = (item.status || "").toString().trim().toLowerCase() === "closed";
 
     const statusText = item.current_winner
       ? `Winning: #${item.current_winner}`
