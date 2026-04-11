@@ -85,6 +85,7 @@ input {
   <div style="margin-top:10px;">
     <button class="submit" onclick="goHome()">Home</button>
     <button id="myBidsBtn" class="submit" onclick="showMyBids()">My Bids</button>
+    <button class="submit" onclick="exportBids()">Export Bids</button>
   </div>
 </div>
 
@@ -102,6 +103,7 @@ import {
   serverTimestamp,
   addDoc,
   updateDoc
+   getDocs 
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -283,7 +285,47 @@ async function submitBid(itemId, bidAmount) {
   }
 }    
 
+async function exportBids() {
+  const snapshot = await getDocs(collection(db, "bids"));
 
+  const rows = [];
+
+  snapshot.forEach(doc => {
+    const d = doc.data();
+
+    rows.push({
+      itemId: d.item_id || "",
+      bidAmount: d.bid_amount || "",
+      bidderName: d.bidder_name || "",
+      bidderId: d.bidder_id || "",
+      status: d.status || "",
+      timestamp: d.timestamp?.seconds || ""
+    });
+  });
+
+  if (rows.length === 0) {
+    alert("No bids found.");
+    return;
+  }
+
+  console.table(rows);
+
+  const headers = Object.keys(rows[0]);
+  const csv = [
+    headers.join(","),
+    ...rows.map(r => headers.map(h => `"${r[h]}"`).join(","))
+  ].join("\n");
+
+  const blob = new Blob([csv], { type: "text/csv" });
+  const a = document.createElement("a");
+
+  a.href = URL.createObjectURL(blob);
+  a.download = "bids.csv";
+  a.click();
+}
+
+// 👇 THIS LINE IS CRITICAL (because of module)
+window.exportBids = exportBids;
 // INIT
 loadItems();
 
