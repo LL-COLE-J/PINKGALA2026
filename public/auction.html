@@ -321,7 +321,9 @@ async function exportBids() {
 
   a.href = URL.createObjectURL(blob);
   a.download = "bids.csv";
+  document.body.appendChild(a);
   a.click();
+  document.body.removeChild(a);
 }
 
 // 👇 THIS LINE IS CRITICAL (because of module)
