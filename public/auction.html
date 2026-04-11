@@ -85,7 +85,6 @@ input {
   <div style="margin-top:10px;">
     <button class="submit" onclick="goHome()">Home</button>
     <button id="myBidsBtn" class="submit" onclick="showMyBids()">My Bids</button>
-    <button class="submit" onclick="exportBids()">Export Bids</button>
   </div>
 </div>
 
@@ -132,10 +131,19 @@ window.fb = {
 window.goHome = function() {
   window.location.href = "/";
 };
-  window.showMyBids = function() {
-  alert("My Bids coming soon");
-};
+ window.showMyBids = function() {
+  SHOWING_MY_BIDS = !SHOWING_MY_BIDS;
 
+  const btn = document.getElementById("myBidsBtn");
+
+  if (SHOWING_MY_BIDS) {
+    btn.innerText = "All Items";
+  } else {
+    btn.innerText = "My Bids";
+  }
+
+  renderAuction();
+};
 function getUser() {
   return {
     id: localStorage.getItem("USER_ID"),
@@ -174,6 +182,14 @@ function renderAuction() {
 
   ITEMS.forEach(item => {
 
+  if (SHOWING_MY_BIDS) {
+    const user = getUser();
+
+    if (item.current_winner !== user.id) {
+      return;
+    }
+  }
+
     const current = item.current_bid || 0;
     const increment = item.bid_increment || 50;
     const nextBid = current + increment;
@@ -188,10 +204,12 @@ function renderAuction() {
       <div class="bid">$${current}</div>
 
       <div class="status">
-        ${item.current_winner
-          ? `Winning: #${item.current_winner}`
-          : 'No bids'}
-      </div>
+  ${item.current_winner === getUser().id
+    ? `<span style="color:#22c55e;">You are winning</span>`
+    : item.current_winner
+      ? `Winning: #${item.current_winner}`
+      : 'No bids'}
+</div>
 
       ${isClosed
         ? `<button class="bidBtn" disabled>Closed</button>`
