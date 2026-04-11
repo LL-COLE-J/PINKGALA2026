@@ -140,7 +140,9 @@ function getUser() {
     name: localStorage.getItem("USER_NAME")
   };
 }
-if (!USER_ID) {
+const userCheck = getUser();
+
+if (!userCheck.id) {
   alert("Please check in first");
   window.location.href = "/";
 }
