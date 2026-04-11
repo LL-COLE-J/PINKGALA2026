@@ -134,9 +134,12 @@ window.goHome = function() {
   alert("My Bids coming soon");
 };
 
-const USER_ID = localStorage.getItem("USER_ID");
-const USER_NAME = localStorage.getItem("USER_NAME");
-
+function getUser() {
+  return {
+    id: localStorage.getItem("USER_ID"),
+    name: localStorage.getItem("USER_NAME")
+  };
+}
 if (!USER_ID) {
   alert("Please check in first");
   window.location.href = "/";
@@ -230,7 +233,10 @@ async function submitBid(itemId, bidAmount) {
   // 🔥 log bid attempt FIRST
   const bidDocRef = await addDoc(bidsRef, {
     item_id: itemId,
-    bidder_id: USER_ID,
+   const user = getUser();
+
+bidder_id: user.id,
+bidder_name: user.name,
     bidder_name: USER_NAME,
     bid_amount: bidAmount,
     timestamp: new Date(),
@@ -257,8 +263,8 @@ async function submitBid(itemId, bidAmount) {
       // ✅ update item
       transaction.update(itemRef, {
         current_bid: bidAmount,
-        current_winner: USER_ID,
-        current_winner_name: USER_NAME,
+       current_winner: user.id,
+current_winner_name: user.name,
         last_updated: serverTimestamp()
       });
 
