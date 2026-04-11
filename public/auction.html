@@ -204,11 +204,11 @@ function renderAuction() {
       <div class="bid">$${current}</div>
 
       <div class="status">
-  ${item.current_winner === getUser().id
-    ? `<span style="color:#22c55e;">You are winning</span>`
-    : item.current_winner
-      ? `Winning: #${item.current_winner}`
-      : 'No bids'}
+ ${item.current_winner === getUser().id
+  ? `<span style="color:#22c55e;">You are winning</span>`
+  : item.current_winner
+    ? `<span style="color:#ef4444;">Outbid</span> (Winning: #${item.current_winner})`
+    : 'No bids'}
 </div>
 
       ${isClosed
