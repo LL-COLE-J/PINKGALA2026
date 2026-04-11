@@ -228,18 +228,15 @@ function renderAuction() {
 // ✅ FIRESTORE BID (REPLACES GAS)
 async function submitBid(itemId, bidAmount) {
 
+  const user = getUser(); // ✅ get user FIRST
   const bidsRef = collection(db, "bids");
 
-  // 🔥 log bid attempt FIRST
   const bidDocRef = await addDoc(bidsRef, {
     item_id: itemId,
-   const user = getUser();
-
-bidder_id: user.id,
-bidder_name: user.name,
-    bidder_name: USER_NAME,
+    bidder_id: user.id,
+    bidder_name: user.name,
     bid_amount: bidAmount,
-    timestamp: new Date(),
+    timestamp: serverTimestamp(),
     status: "pending"
   });
 
@@ -260,24 +257,21 @@ bidder_name: user.name,
         throw "Bid too low";
       }
 
-      // ✅ update item
       transaction.update(itemRef, {
         current_bid: bidAmount,
-       current_winner: user.id,
-current_winner_name: user.name,
+        current_winner: user.id,
+        current_winner_name: user.name,
         last_updated: serverTimestamp()
       });
 
     });
 
-    // ✅ mark success
     await updateDoc(bidDocRef, {
       status: "accepted"
     });
 
   } catch (e) {
 
-    // ❌ mark failure
     await updateDoc(bidDocRef, {
       status: "rejected"
     });
@@ -285,8 +279,7 @@ current_winner_name: user.name,
     alert(e);
     console.error("Bid failed:", e);
   }
-}
-    
+}    
 
 
 // INIT
